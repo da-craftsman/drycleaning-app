@@ -35,6 +35,7 @@ create table profiles (
   address text,
   email text not null,
   email_verified_at timestamptz,
+  welcome_email_sent_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -95,6 +96,7 @@ create table orders (
   payment_status payment_status not null default 'pending',
   paystack_reference text unique,
   confirmation_email_sent_at timestamptz,
+  ready_email_sent_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

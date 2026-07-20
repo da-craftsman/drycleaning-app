@@ -46,6 +46,13 @@ export async function signUp(input: { fullName: string; email: string; phone: st
   return profile
 }
 
+/** Emails a brief welcome highlighting services and logistics options. Best-effort — a failed send shouldn't block signup. */
+export async function sendWelcomeEmail(): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase!.functions.invoke('send-welcome-email', { body: {} })
+  if (error) throw error
+}
+
 export async function signOut(): Promise<void> {
   if (!isSupabaseConfigured) return signOutMock()
   const { error } = await supabase!.auth.signOut()

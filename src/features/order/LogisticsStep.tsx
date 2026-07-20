@@ -109,14 +109,15 @@ function LogisticsStep() {
             onValueChange={(v) => setLogistics(logisticsType!, v)}
             disabled={isLoading}
           >
-            <SelectTrigger id='zone' className='mt-1'>
+            <SelectTrigger id='zone' className='mt-1 text-sm sm:text-body-md'>
               <SelectValue
+                className='truncate'
                 placeholder={isLoading ? 'Loading zones…' : 'Select a zone'}
               />
             </SelectTrigger>
             <SelectContent>
               {zones?.map((zone) => (
-                <SelectItem key={zone.id} value={zone.id}>
+                <SelectItem key={zone.id} value={zone.id} className='text-sm sm:text-body-md'>
                   {zone.name} (Pickup {formatNaira(zone.pickup_fee)} · Delivery {formatNaira(zone.delivery_fee)})
                 </SelectItem>
               ))}

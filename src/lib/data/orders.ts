@@ -144,6 +144,13 @@ export async function sendOrderConfirmationEmail(orderId: string): Promise<void>
   if (error) throw error
 }
 
+/** Emails the customer that their order is ready for pickup/delivery. Best-effort — a failed send shouldn't block the status change. */
+export async function sendOrderReadyEmail(orderId: string): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase!.functions.invoke('send-order-ready', { body: { orderId } })
+  if (error) throw error
+}
+
 export async function updateOrderStatus(orderId: string, status: OrderStatus, riderName?: string): Promise<Order> {
   if (!isSupabaseConfigured) return updateOrderStatusMock(orderId, status, riderName)
 
@@ -162,6 +169,9 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, ri
 
   if (existing && existing.status !== status) {
     await supabase!.from('order_status_history').insert({ order_id: orderId, status })
+    // Best-effort: the status change already succeeded above, so a mailer hiccup shouldn't
+    // affect it — it's just a notification email, not something to block or retry here.
+    if (status === 'ready') sendOrderReadyEmail(orderId).catch((err) => console.error('Failed to send order ready email', err))
   }
 
   return data

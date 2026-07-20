@@ -9,6 +9,7 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
+import { sendWelcomeEmail } from '@/lib/data/auth'
 import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
 
@@ -38,6 +39,9 @@ export default function SignupPage() {
     try {
       await signUp(values)
       toast({ title: 'Account created', description: 'Welcome to Shalah Rex Laundry!', variant: 'success' })
+      // Best-effort: the account already exists at this point, so a mailer hiccup shouldn't affect
+      // signup — it's just a welcome email, not something to block or retry on the customer's behalf.
+      sendWelcomeEmail().catch((err) => console.error('Failed to send welcome email', err))
       // A new signup is always a customer, so — unlike LoginPage — no role check is needed. With no
       // `from` (an organic signup, not bounced here mid-task), go straight to the account with zero
       // extra friction. With a `from`, fall through to the choice screen below instead of picking
