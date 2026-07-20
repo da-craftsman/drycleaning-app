@@ -7,8 +7,10 @@ import { ItemCard } from '@/features/catalog/ItemCard'
 import { ItemModal } from '@/features/catalog/ItemModal'
 import { CartSummary } from '@/features/cart/CartSummary'
 import { FloatingCartButton } from '@/features/cart/FloatingCartButton'
+import { GuestCheckoutGateDialog } from '@/features/order/GuestCheckoutGateDialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuth } from '@/hooks/useAuth'
 import { useCategories } from '@/lib/queries/useCategories'
 import { useClothingItems } from '@/lib/queries/useClothingItems'
 import { paths } from '@/routes/paths'
@@ -16,11 +18,13 @@ import type { ClothingItem } from '@/types/database'
 
 export default function NewOrderPage() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const { data: categories } = useCategories()
   const { data: items, isLoading } = useClothingItems()
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES)
   const [search, setSearch] = useState('')
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null)
+  const [guestGateOpen, setGuestGateOpen] = useState(false)
 
   const categoryName = categories?.find((c) => c.id === selectedItem?.category_id)?.name ?? ''
 
@@ -33,7 +37,13 @@ export default function NewOrderPage() {
     })
   }, [items, activeCategory, search])
 
-  const handleProceed = () => navigate(paths.checkout('logistics'))
+  // Checkout requires login (RLS needs a real user_id), but bouncing a guest straight to the login
+  // page with no explanation feels like a dead end — show a gate dialog explaining why instead of
+  // letting ProtectedRoute's silent redirect be the guest's first signal that anything's required.
+  const handleProceed = () => {
+    if (isAuthenticated) navigate(paths.checkout('logistics'))
+    else setGuestGateOpen(true)
+  }
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-shell px-margin-mobile py-stack-lg md:px-gutter">
@@ -82,6 +92,7 @@ export default function NewOrderPage() {
 
       <ItemModal item={selectedItem} categoryName={categoryName} onClose={() => setSelectedItem(null)} />
       <FloatingCartButton onProceed={handleProceed} />
+      <GuestCheckoutGateDialog open={guestGateOpen} onOpenChange={setGuestGateOpen} />
     </div>
   )
 }

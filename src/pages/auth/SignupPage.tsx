@@ -2,11 +2,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { PartyPopper } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input, FieldError } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/use-toast'
 import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
 
@@ -23,6 +25,8 @@ export default function SignupPage() {
   const { signUp, signUpStatus } = useAuth()
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: string } }
+  const { toast } = useToast()
+  const from = location.state?.from
 
   const {
     register,
@@ -33,12 +37,38 @@ export default function SignupPage() {
   const onSubmit = async (values: FormValues) => {
     try {
       await signUp(values)
-      // A new signup is always a customer, so — unlike LoginPage — no role check is needed before
-      // honoring a redirect-back target (e.g. bounced here from checkout).
-      navigate(location.state?.from ?? paths.account)
+      toast({ title: 'Account created', description: 'Welcome to Shalah Rex Laundry!', variant: 'success' })
+      // A new signup is always a customer, so — unlike LoginPage — no role check is needed. With no
+      // `from` (an organic signup, not bounced here mid-task), go straight to the account with zero
+      // extra friction. With a `from`, fall through to the choice screen below instead of picking
+      // for the user — they might want to finish what they started, or just look around first.
+      if (!from) navigate(paths.account)
     } catch {
       // surfaced via signUpStatus.error below
     }
+  }
+
+  if (signUpStatus.isSuccess && from) {
+    const isCheckoutFlow = from.startsWith('/order/checkout')
+    return (
+      <div className="flex flex-col items-center gap-stack-md text-center">
+        <PartyPopper className="h-10 w-10 text-success-green" />
+        <h1 className="font-display text-headline-md text-on-surface">Account created!</h1>
+        <p className="text-body-md text-on-surface-variant">
+          {isCheckoutFlow
+            ? "You're all set — pick up right where you left off, or take a look around your account first."
+            : 'What would you like to do next?'}
+        </p>
+        <div className="flex w-full flex-col gap-2">
+          <Button size="lg" onClick={() => navigate(from)}>
+            {isCheckoutFlow ? 'Continue My Order' : 'Continue'}
+          </Button>
+          <Button size="lg" variant="outline" onClick={() => navigate(paths.account)}>
+            Go to My Account
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

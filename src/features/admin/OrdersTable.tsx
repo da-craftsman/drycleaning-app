@@ -5,13 +5,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { OrderStatusBadge, orderStatusLabels } from '@/features/dashboard/OrderStatusBadge'
 import { formatNaira } from '@/features/catalog/ItemCard'
+import { useToast } from '@/hooks/use-toast'
 import { useUpdateOrderStatus } from '@/lib/queries/useCreateOrder'
 import { whatsappLink } from '@/lib/constants'
+import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
 import type { Order, OrderStatus } from '@/types/database'
 
 function OrdersTable({ orders, isLoading }: { orders?: Order[]; isLoading: boolean }) {
   const updateStatus = useUpdateOrderStatus()
+  const { toast } = useToast()
 
   if (isLoading) {
     return (
@@ -45,7 +48,16 @@ function OrdersTable({ orders, isLoading }: { orders?: Order[]; isLoading: boole
             <div className="flex flex-wrap items-center gap-2">
               <Select
                 value={order.status}
-                onValueChange={(status) => updateStatus.mutate({ orderId: order.id, status: status as OrderStatus })}
+                onValueChange={(status) =>
+                  updateStatus.mutate(
+                    { orderId: order.id, status: status as OrderStatus },
+                    {
+                      onSuccess: () => toast({ title: 'Order status updated', variant: 'success' }),
+                      onError: (err) =>
+                        toast({ title: 'Failed to update status', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+                    },
+                  )
+                }
               >
                 <SelectTrigger className="h-9 w-44 text-label-sm">
                   <SelectValue />

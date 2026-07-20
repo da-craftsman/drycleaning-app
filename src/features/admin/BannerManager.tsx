@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { usePromoBanner, useUpdatePromoBanner } from '@/lib/queries/usePromoBanner'
 import { readImageAsDataUrl } from '@/lib/readImageAsDataUrl'
+import { getErrorMessage } from '@/lib/utils'
 import type { PromoBanner } from '@/types/database'
 
 const MAX_BANNER_IMAGE_BYTES = 2 * 1024 * 1024
@@ -47,7 +48,10 @@ function BannerManager() {
   }
 
   const save = () => {
-    updateBanner.mutate(form, { onSuccess: () => toast({ title: 'Banner updated', variant: 'success' }) })
+    updateBanner.mutate(form, {
+      onSuccess: () => toast({ title: 'Banner updated', variant: 'success' }),
+      onError: (err) => toast({ title: 'Failed to update banner', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+    })
   }
 
   return (

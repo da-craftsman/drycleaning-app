@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { AppLayout } from '@/layouts/AppLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
-import { ProtectedRoute, RequireVerifiedEmail, AdminRoute } from '@/components/auth/ProtectedRoute'
+import { ProtectedRoute, AdminRoute } from '@/components/auth/ProtectedRoute'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { queryKeys } from '@/lib/queries/keys'
 import { paths } from '@/routes/paths'
@@ -29,7 +29,6 @@ import AccountOrderDetailPage from '@/pages/account/AccountOrderDetailPage'
 import AccountTicketsPage from '@/pages/account/AccountTicketsPage'
 import AccountTicketDetailPage from '@/pages/account/AccountTicketDetailPage'
 import AccountProfilePage from '@/pages/account/AccountProfilePage'
-import VerifyEmailPage from '@/pages/account/VerifyEmailPage'
 
 // Auth and Admin are natural code-split boundaries — most visitors never touch either,
 // and Admin pulls in jsPDF (receipt/invoice generation), so keep both out of the main bundle.
@@ -95,20 +94,17 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           {/* Orders need a real authenticated user_id (RLS requires user_id = auth.uid()), so
-              checkout requires login — but not email verification, so a brand-new signup can pay
-              immediately instead of being blocked until they check their inbox. */}
+              checkout requires login. Email verification is intentionally not required anywhere
+              right now (see use/Things to do.md) — a brand-new signup gets full access immediately. */}
           <Route path="/order/checkout/:step" element={<CheckoutPage />} />
           <Route path="/order/confirmation/:orderId" element={<ConfirmationPage />} />
 
-          <Route path={paths.verifyEmail} element={<VerifyEmailPage />} />
-          <Route element={<RequireVerifiedEmail />}>
-            <Route path={paths.account} element={<AccountHomePage />} />
-            <Route path={paths.accountOrders} element={<AccountOrdersPage />} />
-            <Route path="/account/orders/:id" element={<AccountOrderDetailPage />} />
-            <Route path={paths.accountTickets} element={<AccountTicketsPage />} />
-            <Route path="/account/tickets/:id" element={<AccountTicketDetailPage />} />
-            <Route path={paths.accountProfile} element={<AccountProfilePage />} />
-          </Route>
+          <Route path={paths.account} element={<AccountHomePage />} />
+          <Route path={paths.accountOrders} element={<AccountOrdersPage />} />
+          <Route path="/account/orders/:id" element={<AccountOrderDetailPage />} />
+          <Route path={paths.accountTickets} element={<AccountTicketsPage />} />
+          <Route path="/account/tickets/:id" element={<AccountTicketDetailPage />} />
+          <Route path={paths.accountProfile} element={<AccountProfilePage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

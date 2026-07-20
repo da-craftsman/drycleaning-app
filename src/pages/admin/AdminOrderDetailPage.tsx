@@ -11,9 +11,11 @@ import { TrackingTimeline } from '@/features/tracking/TrackingTimeline'
 import { OrderStatusBadge, orderStatusLabels } from '@/features/dashboard/OrderStatusBadge'
 import { ReceiptDownload } from '@/features/dashboard/ReceiptDownload'
 import { formatNaira } from '@/features/catalog/ItemCard'
+import { useToast } from '@/hooks/use-toast'
 import { useOrder, useOrderItems, useOrderStatusHistory } from '@/lib/queries/useOrders'
 import { useUpdateOrderStatus } from '@/lib/queries/useCreateOrder'
 import { whatsappLink } from '@/lib/constants'
+import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
 import type { OrderStatus } from '@/types/database'
 
@@ -23,6 +25,7 @@ export default function AdminOrderDetailPage() {
   const { data: items } = useOrderItems(id)
   const { data: history = [] } = useOrderStatusHistory(id)
   const updateStatus = useUpdateOrderStatus()
+  const { toast } = useToast()
   const [rider, setRider] = useState('')
 
   useEffect(() => {
@@ -59,7 +62,16 @@ export default function AdminOrderDetailPage() {
               <Label htmlFor="status">Status</Label>
               <Select
                 value={order.status}
-                onValueChange={(status) => updateStatus.mutate({ orderId: order.id, status: status as OrderStatus, riderName: rider })}
+                onValueChange={(status) =>
+                  updateStatus.mutate(
+                    { orderId: order.id, status: status as OrderStatus, riderName: rider },
+                    {
+                      onSuccess: () => toast({ title: 'Order status updated', variant: 'success' }),
+                      onError: (err) =>
+                        toast({ title: 'Failed to update status', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+                    },
+                  )
+                }
               >
                 <SelectTrigger id="status" className="mt-1">
                   <SelectValue />
@@ -79,7 +91,16 @@ export default function AdminOrderDetailPage() {
                 <Input id="rider" value={rider} onChange={(e) => setRider(e.target.value)} placeholder="Assign a rider" />
                 <Button
                   variant="outline"
-                  onClick={() => updateStatus.mutate({ orderId: order.id, status: order.status, riderName: rider })}
+                  onClick={() =>
+                    updateStatus.mutate(
+                      { orderId: order.id, status: order.status, riderName: rider },
+                      {
+                        onSuccess: () => toast({ title: 'Rider updated', variant: 'success' }),
+                        onError: (err) =>
+                          toast({ title: 'Failed to update rider', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+                      },
+                    )
+                  }
                   disabled={updateStatus.isPending}
                 >
                   Save

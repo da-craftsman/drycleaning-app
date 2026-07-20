@@ -7,6 +7,7 @@ import { Input, FieldError } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { paths } from '@/routes/paths';
 
 const schema = z.object({
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const { signIn, signInStatus } = useAuth();
   const navigate = useNavigate();
   const location = useLocation() as { state?: { from?: string } };
+  const { toast } = useToast();
 
   const {
     register,
@@ -33,6 +35,7 @@ export default function LoginPage() {
   const onSubmit = async (values: FormValues) => {
     try {
       const profile = await signIn(values);
+      toast({ title: 'Login successful', description: `Welcome back, ${profile.full_name}.`, variant: 'success' });
       const roleDefault =
         profile.role === 'admin' ? paths.admin : paths.account;
       // Only honor a redirect-back target if it matches the signed-in role — a stale `from`

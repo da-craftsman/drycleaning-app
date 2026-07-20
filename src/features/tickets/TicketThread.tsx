@@ -4,7 +4,8 @@ import { Textarea } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
+import { cn, getErrorMessage } from '@/lib/utils'
 import { useTicket, useTicketMessages, useAddTicketMessage, useUpdateTicketStatus } from '@/lib/queries/useTickets'
 import type { TicketStatus, UserRole } from '@/types/database'
 
@@ -27,6 +28,7 @@ function TicketThread({
   const { data: messages } = useTicketMessages(ticketId)
   const addMessage = useAddTicketMessage()
   const updateStatus = useUpdateTicketStatus()
+  const { toast } = useToast()
   const [reply, setReply] = useState('')
 
   if (isLoading || !ticket) {
@@ -35,8 +37,23 @@ function TicketThread({
 
   const handleReply = async () => {
     if (!reply.trim()) return
-    await addMessage.mutateAsync({ ticketId, authorRole: viewerRole, authorName: viewerName, message: reply.trim() })
-    setReply('')
+    try {
+      await addMessage.mutateAsync({ ticketId, authorRole: viewerRole, authorName: viewerName, message: reply.trim() })
+      setReply('')
+    } catch (err) {
+      toast({ title: 'Failed to send message', description: getErrorMessage(err, 'Please try again.'), variant: 'error' })
+    }
+  }
+
+  const handleMarkResolved = () => {
+    updateStatus.mutate(
+      { ticketId, status: 'resolved' },
+      {
+        onSuccess: () => toast({ title: 'Ticket marked resolved', variant: 'success' }),
+        onError: (err) =>
+          toast({ title: 'Failed to update ticket', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+      },
+    )
   }
 
   return (
@@ -83,12 +100,7 @@ function TicketThread({
             />
             <div className="flex justify-between gap-2">
               {viewerRole === 'admin' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateStatus.mutate({ ticketId, status: 'resolved' })}
-                  disabled={updateStatus.isPending}
-                >
+                <Button variant="outline" size="sm" onClick={handleMarkResolved} disabled={updateStatus.isPending}>
                   Mark Resolved
                 </Button>
               )}

@@ -40,13 +40,9 @@ export async function signUp(input: { fullName: string; email: string; phone: st
     .select()
     .single()
   if (profileError) throw profileError
-  // Best-effort: the account is already created at this point, so a mailer hiccup (e.g. rate limit)
-  // shouldn't fail signup — the user can always hit "Resend" from the verify-email page.
-  try {
-    await sendVerificationEmail(input.email)
-  } catch (err) {
-    console.error('Failed to send verification email', err)
-  }
+  // Verification email intentionally not sent here — the whole email-verification requirement is
+  // paused for now to keep signup frictionless (see use/Things to do.md). sendVerificationEmail
+  // below is kept in place, unused, so it's a small job to wire back in later.
   return profile
 }
 

@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useBlogPost, useUpsertBlogPost } from '@/lib/queries/useBlogPosts'
 import { readImageAsDataUrl } from '@/lib/readImageAsDataUrl'
+import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
 import type { BlogPost } from '@/types/database'
 
@@ -83,9 +84,13 @@ export default function AdminBlogPostPage() {
       published_at: published ? (existing?.published_at ?? new Date().toISOString()) : null,
       created_at: existing?.created_at ?? new Date().toISOString(),
     }
-    await upsert.mutateAsync(post)
-    toast({ title: isNew ? 'Post created' : 'Post updated', variant: 'success' })
-    navigate(paths.adminBlog)
+    try {
+      await upsert.mutateAsync(post)
+      toast({ title: isNew ? 'Post created' : 'Post updated', variant: 'success' })
+      navigate(paths.adminBlog)
+    } catch (err) {
+      toast({ title: 'Failed to save post', description: getErrorMessage(err, 'Please try again.'), variant: 'error' })
+    }
   }
 
   return (

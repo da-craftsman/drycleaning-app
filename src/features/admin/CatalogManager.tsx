@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useCategories } from '@/lib/queries/useCategories'
 import { useAllClothingItems, useUpdateClothingItem } from '@/lib/queries/useClothingItems'
 import { uploadThumbnail } from '@/lib/data/storage'
+import { getErrorMessage } from '@/lib/utils'
 import type { ClothingItem } from '@/types/database'
 
 function ItemRow({ item }: { item: ClothingItem }) {
@@ -28,13 +29,35 @@ function ItemRow({ item }: { item: ClothingItem }) {
           price_express: Number(express) || 0,
         },
       },
-      { onSuccess: () => toast({ title: 'Prices updated', variant: 'success' }) },
+      {
+        onSuccess: () => toast({ title: 'Prices updated', variant: 'success' }),
+        onError: (err) => toast({ title: 'Failed to update prices', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+      },
     )
   }
 
   const handleThumbnail = async (file: File) => {
-    const url = await uploadThumbnail(file)
-    updateItem.mutate({ itemId: item.id, patch: { thumbnail_url: url } })
+    try {
+      const url = await uploadThumbnail(file)
+      await updateItem.mutateAsync({ itemId: item.id, patch: { thumbnail_url: url } })
+      toast({ title: 'Thumbnail updated', variant: 'success' })
+    } catch (err) {
+      toast({ title: 'Failed to upload thumbnail', description: getErrorMessage(err, 'Please try again.'), variant: 'error' })
+    }
+  }
+
+  const toggleVisibility = () => {
+    // Captured as a primitive rather than read from `item` inside onSuccess — the mock backend
+    // updates its record in place (Object.assign), so by the time onSuccess runs, `item.is_active`
+    // (same object reference) would already reflect the *new* value and invert this message.
+    const wasActive = item.is_active
+    updateItem.mutate(
+      { itemId: item.id, patch: { is_active: !wasActive } },
+      {
+        onSuccess: () => toast({ title: wasActive ? 'Item hidden' : 'Item made visible', variant: 'success' }),
+        onError: (err) => toast({ title: 'Failed to update visibility', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+      },
+    )
   }
 
   return (
@@ -75,11 +98,7 @@ function ItemRow({ item }: { item: ClothingItem }) {
           <Button size="sm" variant="outline" onClick={save} disabled={updateItem.isPending}>
             Save
           </Button>
-          <Button
-            size="sm"
-            variant={item.is_active ? 'subtle' : 'express'}
-            onClick={() => updateItem.mutate({ itemId: item.id, patch: { is_active: !item.is_active } })}
-          >
+          <Button size="sm" variant={item.is_active ? 'subtle' : 'express'} onClick={toggleVisibility}>
             {item.is_active ? 'Visible' : 'Hidden'}
           </Button>
         </div>

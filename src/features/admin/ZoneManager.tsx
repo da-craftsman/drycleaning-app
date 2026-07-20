@@ -12,6 +12,7 @@ import {
   useDeliveryZones,
   useUpdateDeliveryZone,
 } from '@/lib/queries/useDeliveryZones'
+import { getErrorMessage } from '@/lib/utils'
 import type { DeliveryZone } from '@/types/database'
 
 function ZoneRow({ zone }: { zone: DeliveryZone }) {
@@ -27,13 +28,19 @@ function ZoneRow({ zone }: { zone: DeliveryZone }) {
   const save = () => {
     updateZone.mutate(
       { zoneId: zone.id, patch: { name, pickup_fee: Number(pickupFee) || 0, delivery_fee: Number(deliveryFee) || 0 } },
-      { onSuccess: () => toast({ title: 'Zone updated', variant: 'success' }) },
+      {
+        onSuccess: () => toast({ title: 'Zone updated', variant: 'success' }),
+        onError: (err) => toast({ title: 'Failed to update zone', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+      },
     )
   }
 
   const remove = () => {
     if (!window.confirm(`Remove "${zone.name}" as a delivery zone?`)) return
-    deleteZone.mutate(zone.id, { onSuccess: () => toast({ title: 'Zone removed', variant: 'success' }) })
+    deleteZone.mutate(zone.id, {
+      onSuccess: () => toast({ title: 'Zone removed', variant: 'success' }),
+      onError: (err) => toast({ title: 'Failed to remove zone', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+    })
   }
 
   return (
@@ -84,6 +91,7 @@ function NewZoneForm() {
           setPickupFee('')
           setDeliveryFee('')
         },
+        onError: (err) => toast({ title: 'Failed to add zone', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
       },
     )
   }
