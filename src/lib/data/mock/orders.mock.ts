@@ -100,6 +100,15 @@ export function verifyPaystackPaymentMock(orderId: string, reference: string): P
   return delay({ verified: true }, 500)
 }
 
+export function markOrderPaidMock(orderId: string): Promise<Order> {
+  const order = db.orders.find((o) => o.id === orderId)
+  if (!order) throw new Error(`Order ${orderId} not found`)
+  order.payment_status = 'paid'
+  order.updated_at = new Date().toISOString()
+  persist()
+  return delay(order)
+}
+
 export function updateOrderStatusMock(orderId: string, status: OrderStatus, riderName?: string): Promise<Order> {
   const order = db.orders.find((o) => o.id === orderId)
   if (!order) throw new Error(`Order ${orderId} not found`)

@@ -1,18 +1,24 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Label } from '@/components/ui/label'
 import { Input, Textarea, FieldError } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { PhotoUpload } from '@/features/order/PhotoUpload'
 import { useCheckoutStore } from '@/store/useCheckoutStore'
 
-const detailsSchema = z.object({
-  address: z.string().min(8, 'Enter a full address so we can find you.'),
-  phone: z.string().min(10, 'Enter a valid phone number.'),
-  whatsapp: z.string().optional(),
-  specialInstructions: z.string().optional(),
-})
+const detailsSchema = z
+  .object({
+    address: z.string().min(8, 'Enter a full address so we can find you.'),
+    phone: z.string().min(10, 'Enter a valid phone number.'),
+    hasStainOrDamage: z.boolean(),
+    specialInstructions: z.string().optional(),
+  })
+  .refine((data) => !data.hasStainOrDamage || Boolean(data.specialInstructions?.trim()), {
+    message: 'Describe the stain or damage so we know what to look out for.',
+    path: ['specialInstructions'],
+  })
 
 export type DetailsFormValues = z.infer<typeof detailsSchema>
 
@@ -26,20 +32,27 @@ function DetailsStep({ onValidChange }: { onValidChange: (valid: boolean, values
   const {
     register,
     watch,
+    control,
     formState: { errors, isValid },
   } = useForm<DetailsFormValues>({
     resolver: zodResolver(detailsSchema),
     mode: 'onChange',
-    defaultValues: details,
+    defaultValues: {
+      address: details.address,
+      phone: details.phone,
+      specialInstructions: details.specialInstructions,
+      hasStainOrDamage: imageDataUrls.length > 0,
+    },
   })
 
   const values = watch()
 
   useEffect(() => {
-    setDetails(values)
-    onValidChange(isValid, values as DetailsFormValues)
+    // WhatsApp is no longer collected separately — it's assumed to be the same as the phone number.
+    setDetails({ address: values.address, phone: values.phone, whatsapp: values.phone, specialInstructions: values.specialInstructions })
+    onValidChange(isValid, values)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.address, values.phone, values.whatsapp, values.specialInstructions, isValid])
+  }, [values.address, values.phone, values.specialInstructions, values.hasStainOrDamage, isValid])
 
   return (
     <div className="flex flex-col gap-stack-md">
@@ -60,33 +73,44 @@ function DetailsStep({ onValidChange }: { onValidChange: (valid: boolean, values
         <FieldError>{errors.address?.message}</FieldError>
       </div>
 
-      <div className="grid grid-cols-1 gap-stack-md sm:grid-cols-2">
-        <div>
-          <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" className="mt-1" placeholder="080X XXX XXXX" error={Boolean(errors.phone)} {...register('phone')} />
-          <FieldError>{errors.phone?.message}</FieldError>
-        </div>
-        <div>
-          <Label htmlFor="whatsapp">WhatsApp (optional)</Label>
-          <Input id="whatsapp" className="mt-1" placeholder="Same as phone if blank" {...register('whatsapp')} />
-        </div>
+      <div>
+        <Label htmlFor="phone">Phone (also used for WhatsApp)</Label>
+        <Input id="phone" className="mt-1" placeholder="080X XXX XXXX" error={Boolean(errors.phone)} {...register('phone')} />
+        <FieldError>{errors.phone?.message}</FieldError>
       </div>
 
       <div>
-        <Label htmlFor="instructions">Special instructions (optional)</Label>
+        <div className="flex items-center gap-2">
+          <Controller
+            control={control}
+            name="hasStainOrDamage"
+            render={({ field }) => <Checkbox id="hasStainOrDamage" checked={field.value} onCheckedChange={field.onChange} />}
+          />
+          <Label htmlFor="hasStainOrDamage" className="normal-case text-body-md">
+            This order has stained or damaged items
+          </Label>
+        </div>
+        {values.hasStainOrDamage && (
+          <div className="mt-stack-sm">
+            <PhotoUpload images={imageDataUrls} onAdd={addImage} onRemove={removeImage} />
+          </div>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="instructions">Special instructions{values.hasStainOrDamage ? '' : ' (optional)'}</Label>
         <Textarea
           id="instructions"
           className="mt-1"
-          placeholder="Fragile items, fragrance-free detergent, gate code, etc."
+          placeholder={
+            values.hasStainOrDamage
+              ? 'Describe the stain or damage on each affected item.'
+              : 'Fragile items, fragrance-free detergent, gate code, etc.'
+          }
+          error={Boolean(errors.specialInstructions)}
           {...register('specialInstructions')}
         />
-      </div>
-
-      <div>
-        <Label>Stained or damaged items</Label>
-        <div className="mt-1">
-          <PhotoUpload images={imageDataUrls} onAdd={addImage} onRemove={removeImage} />
-        </div>
+        <FieldError>{errors.specialInstructions?.message}</FieldError>
       </div>
     </div>
   )

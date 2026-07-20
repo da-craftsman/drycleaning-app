@@ -40,7 +40,11 @@ const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
 const AdminOrdersPage = lazy(() => import('@/pages/admin/AdminOrdersPage'))
 const AdminOrderDetailPage = lazy(() => import('@/pages/admin/AdminOrderDetailPage'))
+const AdminCustomersPage = lazy(() => import('@/pages/admin/AdminCustomersPage'))
+const AdminCustomerDetailPage = lazy(() => import('@/pages/admin/AdminCustomerDetailPage'))
 const AdminCatalogPage = lazy(() => import('@/pages/admin/AdminCatalogPage'))
+const AdminZonesPage = lazy(() => import('@/pages/admin/AdminZonesPage'))
+const AdminBannerPage = lazy(() => import('@/pages/admin/AdminBannerPage'))
 const AdminTicketsPage = lazy(() => import('@/pages/admin/AdminTicketsPage'))
 const AdminTicketDetailPage = lazy(() => import('@/pages/admin/AdminTicketDetailPage'))
 const AdminBlogPage = lazy(() => import('@/pages/admin/AdminBlogPage'))
@@ -124,7 +128,11 @@ function App() {
           <Route path={paths.admin} element={<AdminDashboardPage />} />
           <Route path={paths.adminOrders} element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
+          <Route path={paths.adminCustomers} element={<AdminCustomersPage />} />
+          <Route path="/admin/customers/:id" element={<AdminCustomerDetailPage />} />
           <Route path={paths.adminCatalog} element={<AdminCatalogPage />} />
+          <Route path={paths.adminZones} element={<AdminZonesPage />} />
+          <Route path={paths.adminBanner} element={<AdminBannerPage />} />
           <Route path={paths.adminTickets} element={<AdminTicketsPage />} />
           <Route path="/admin/tickets/:id" element={<AdminTicketDetailPage />} />
           <Route path={paths.adminBlog} element={<AdminBlogPage />} />

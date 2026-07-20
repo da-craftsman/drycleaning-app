@@ -9,6 +9,7 @@ import {
   getOrderMock,
   getOrderStatusHistoryMock,
   getOrdersForUserMock,
+  markOrderPaidMock,
   updateOrderStatusMock,
   verifyPaystackPaymentMock,
 } from '@/lib/data/mock/orders.mock'
@@ -174,5 +175,19 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, ri
     if (status === 'ready') sendOrderReadyEmail(orderId).catch((err) => console.error('Failed to send order ready email', err))
   }
 
+  return data
+}
+
+/**
+ * Marks a cash-on-delivery order paid once the admin has actually collected the cash. Paystack
+ * orders never need this — their payment_status is flipped server-side by verify-payment the
+ * moment the transaction is confirmed, before the order is even placed. Without this, a COD
+ * order's payment_status stays 'pending' forever, which silently zeroes it out of every
+ * paid-only figure (dashboard revenue, a customer's Total Spend) even after they've paid in cash.
+ */
+export async function markOrderPaid(orderId: string): Promise<Order> {
+  if (!isSupabaseConfigured) return markOrderPaidMock(orderId)
+  const { data, error } = await supabase!.from('orders').update({ payment_status: 'paid', updated_at: new Date().toISOString() }).eq('id', orderId).select().single()
+  if (error) throw error
   return data
 }

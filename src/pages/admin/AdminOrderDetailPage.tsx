@@ -8,17 +8,24 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 import { TrackingTimeline } from '@/features/tracking/TrackingTimeline'
 import { OrderStatusBadge, orderStatusLabels } from '@/features/dashboard/OrderStatusBadge'
 import { ReceiptDownload } from '@/features/dashboard/ReceiptDownload'
 import { formatNaira } from '@/features/catalog/ItemCard'
 import { useToast } from '@/hooks/use-toast'
 import { useOrder, useOrderItems, useOrderStatusHistory } from '@/lib/queries/useOrders'
-import { useUpdateOrderStatus } from '@/lib/queries/useCreateOrder'
+import { useUpdateOrderStatus, useMarkOrderPaid } from '@/lib/queries/useCreateOrder'
+import { useProfile } from '@/lib/queries/useProfile'
 import { whatsappLink } from '@/lib/constants'
 import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
-import type { Order, OrderItem, OrderStatus, OrderStatusHistoryEntry } from '@/types/database'
+import type { Order, OrderItem, OrderStatus, OrderStatusHistoryEntry, Profile } from '@/types/database'
+
+const paymentMethodLabels: Record<Order['payment_method'], string> = {
+  paystack: 'Paystack',
+  cash_on_delivery: 'Cash on delivery',
+}
 
 /** The live tracking timeline. Shown as its own tab on mobile (where it competes for vertical space) and side by side with ManagementCard on desktop. */
 function TrackingCard({ status, history }: { status: OrderStatus; history: OrderStatusHistoryEntry[] }) {
@@ -39,6 +46,8 @@ function ManagementCard({
   onStatusChange,
   onSaveRider,
   saving,
+  onMarkPaid,
+  markingPaid,
 }: {
   idSuffix: string
   order: Order
@@ -48,6 +57,8 @@ function ManagementCard({
   onStatusChange: (status: OrderStatus) => void
   onSaveRider: () => void
   saving: boolean
+  onMarkPaid: () => void
+  markingPaid: boolean
 }) {
   const statusId = `status-${idSuffix}`
   const riderId = `rider-${idSuffix}`
@@ -70,6 +81,19 @@ function ManagementCard({
           </Select>
         </div>
         <div>
+          <Label>Payment</Label>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Badge variant={order.payment_status === 'paid' ? 'success' : 'neutral'}>
+              {paymentMethodLabels[order.payment_method]} · {order.payment_status === 'paid' ? 'Paid' : 'Pending'}
+            </Badge>
+            {order.payment_method === 'cash_on_delivery' && order.payment_status !== 'paid' && (
+              <Button variant="outline" size="sm" onClick={onMarkPaid} disabled={markingPaid}>
+                Mark as Paid
+              </Button>
+            )}
+          </div>
+        </div>
+        <div>
           <Label htmlFor={riderId}>Rider</Label>
           <div className="mt-1 flex gap-2">
             <Input id={riderId} value={rider} onChange={(e) => onRiderChange(e.target.value)} placeholder="Assign a rider" />
@@ -86,7 +110,11 @@ function ManagementCard({
             </a>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <a href={whatsappLink(`Hi, this is Shalah Rex Laundry regarding your order ${order.display_id}.`)} target="_blank" rel="noreferrer">
+            <a
+              href={whatsappLink(`Hi, this is Shalah Rex Laundry regarding your order ${order.display_id}.`, order.whatsapp ?? order.phone)}
+              target="_blank"
+              rel="noreferrer"
+            >
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
           </Button>
@@ -97,14 +125,20 @@ function ManagementCard({
   )
 }
 
-/** Everything about the customer/order that isn't a live management action: contact info, address, and the line-item breakdown. */
-function CustomerDetailsCard({ order, items }: { order: Order; items: OrderItem[] | undefined }) {
+/** Everything about the customer/order that isn't a live management action: who placed it, contact info, address, and the line-item breakdown. */
+function CustomerDetailsCard({ order, items, profile }: { order: Order; items: OrderItem[] | undefined; profile: Profile | null | undefined }) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-stack-md pt-stack-md">
         <p className="text-label-sm uppercase text-on-surface-variant">Customer Details</p>
 
         <div className="flex flex-col gap-1 text-body-md">
+          <p className="text-on-surface-variant">
+            Name: <span className="text-on-surface">{profile?.full_name ?? '—'}</span>
+          </p>
+          <p className="text-on-surface-variant">
+            Email: <span className="text-on-surface">{profile?.email ?? '—'}</span>
+          </p>
           <p className="text-on-surface-variant">
             Phone: <span className="text-on-surface">{order.phone}</span>
           </p>
@@ -147,7 +181,9 @@ export default function AdminOrderDetailPage() {
   const { data: order, isLoading } = useOrder(id)
   const { data: items } = useOrderItems(id)
   const { data: history = [] } = useOrderStatusHistory(id)
+  const { data: profile } = useProfile(order?.user_id)
   const updateStatus = useUpdateOrderStatus()
+  const markPaid = useMarkOrderPaid()
   const { toast } = useToast()
   const [rider, setRider] = useState('')
 
@@ -157,7 +193,7 @@ export default function AdminOrderDetailPage() {
 
   if (isLoading || !order) {
     return (
-      <div className="mx-auto w-full min-w-0 max-w-3xl px-margin-mobile py-stack-lg">
+      <div className="mx-auto w-full min-w-0 max-w-6xl px-margin-mobile py-stack-lg">
         <Skeleton className="h-64 w-full" />
       </div>
     )
@@ -181,8 +217,14 @@ export default function AdminOrderDetailPage() {
       },
     )
 
+  const handleMarkPaid = () =>
+    markPaid.mutate(order.id, {
+      onSuccess: () => toast({ title: 'Order marked as paid', variant: 'success' }),
+      onError: (err) => toast({ title: 'Failed to mark order paid', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+    })
+
   return (
-    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-stack-md px-margin-mobile py-stack-lg md:px-gutter">
+    <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-stack-md px-margin-mobile py-stack-lg md:px-gutter">
       <Link to={paths.adminOrders} className="flex items-center gap-1 text-label-md text-on-surface-variant hover:text-on-surface">
         <ChevronLeft className="h-4 w-4" /> Orders
       </Link>
@@ -192,8 +234,8 @@ export default function AdminOrderDetailPage() {
         <OrderStatusBadge status={order.status} />
       </div>
 
-      {/* Mobile: tracking competes with the management card for vertical space, so it's tucked behind a tab instead of always shown. */}
-      <div className="md:hidden">
+      {/* Mobile: tracking competes with the management card for vertical space, so it's tucked behind a tab instead of always shown. Customer Details stays outside the tabs, always visible. */}
+      <div className="flex flex-col gap-stack-md md:hidden">
         <Tabs defaultValue="manage">
           <TabsList>
             <TabsTrigger value="manage">Manage</TabsTrigger>
@@ -209,30 +251,36 @@ export default function AdminOrderDetailPage() {
               onStatusChange={handleStatusChange}
               onSaveRider={handleSaveRider}
               saving={updateStatus.isPending}
+              onMarkPaid={handleMarkPaid}
+              markingPaid={markPaid.isPending}
             />
           </TabsContent>
           <TabsContent value="tracking" className="pt-stack-md">
             <TrackingCard status={order.status} history={history} />
           </TabsContent>
         </Tabs>
+        <CustomerDetailsCard order={order} items={items} profile={profile} />
       </div>
 
-      {/* Desktop: tracking and management side by side, no need to trade one off for the other. */}
-      <div className="hidden md:grid md:grid-cols-2 md:items-start md:gap-stack-md">
+      {/* Desktop: tracking on the left (free to use the extra width), management + customer details stacked in a fixed-width column on the right. */}
+      <div className="hidden md:grid md:grid-cols-[1fr_400px] md:items-start md:gap-stack-md">
         <TrackingCard status={order.status} history={history} />
-        <ManagementCard
-          idSuffix="desktop"
-          order={order}
-          items={items}
-          rider={rider}
-          onRiderChange={setRider}
-          onStatusChange={handleStatusChange}
-          onSaveRider={handleSaveRider}
-          saving={updateStatus.isPending}
-        />
+        <div className="flex flex-col gap-stack-md">
+          <ManagementCard
+            idSuffix="desktop"
+            order={order}
+            items={items}
+            rider={rider}
+            onRiderChange={setRider}
+            onStatusChange={handleStatusChange}
+            onSaveRider={handleSaveRider}
+            saving={updateStatus.isPending}
+            onMarkPaid={handleMarkPaid}
+            markingPaid={markPaid.isPending}
+          />
+          <CustomerDetailsCard order={order} items={items} profile={profile} />
+        </div>
       </div>
-
-      <CustomerDetailsCard order={order} items={items} />
     </div>
   )
 }

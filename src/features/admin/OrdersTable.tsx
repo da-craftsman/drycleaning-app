@@ -79,7 +79,7 @@ function OrdersTable({ orders, isLoading }: { orders?: Order[]; isLoading: boole
                 <Phone className="h-4 w-4" />
               </a>
               <a
-                href={whatsappLink(`Hi, this is Shalah Rex Laundry regarding your order ${order.display_id}.`)}
+                href={whatsappLink(`Hi, this is Shalah Rex Laundry regarding your order ${order.display_id}.`, order.whatsapp ?? order.phone)}
                 target="_blank"
                 rel="noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-low"

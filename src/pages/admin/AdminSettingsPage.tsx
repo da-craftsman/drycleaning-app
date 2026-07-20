@@ -1,13 +1,19 @@
-import { useNavigate } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { LogOut, Users, MapPin, Image as ImageIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ZoneManager } from '@/features/admin/ZoneManager'
-import { BannerManager } from '@/features/admin/BannerManager'
 import { ChangePasswordForm } from '@/features/account/ChangePasswordForm'
 import { useAuth } from '@/hooks/useAuth'
 import { business } from '@/lib/constants'
 import { paths } from '@/routes/paths'
+
+// Desktop reaches these via the sidebar directly — this list exists so they're still one tap away
+// from the mobile bottom nav's "Menu" destination, which is this page.
+const quickLinks = [
+  { to: paths.adminCustomers, label: 'Customers', icon: Users },
+  { to: paths.adminZones, label: 'Delivery Zones', icon: MapPin },
+  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon },
+]
 
 export default function AdminSettingsPage() {
   const { signOut } = useAuth()
@@ -37,20 +43,20 @@ export default function AdminSettingsPage() {
           </Card>
         </section>
 
-        <section>
-          <h2 className="mb-stack-sm text-headline-md font-display text-on-surface">Delivery Zones</h2>
-          <p className="mb-stack-sm text-body-md text-on-surface-variant">
-            Update names or fees, remove zones no longer served, or add new ones.
-          </p>
-          <ZoneManager />
-        </section>
-
-        <section>
-          <h2 className="mb-stack-sm text-headline-md font-display text-on-surface">Manage Banner</h2>
-          <p className="mb-stack-sm text-body-md text-on-surface-variant">
-            Control the promotional banner shown on the home page: swap in an image or GIF, set where it links to, or turn it off.
-          </p>
-          <BannerManager />
+        <section className="md:hidden">
+          <h2 className="mb-stack-sm text-headline-md font-display text-on-surface">Manage</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {quickLinks.map(({ to, label, icon: Icon }) => (
+              <Link key={to} to={to}>
+                <Card className="transition-shadow hover:shadow-soft-lift">
+                  <CardContent className="flex flex-col items-center gap-2 py-stack-md text-center">
+                    <Icon className="h-5 w-5 text-primary" />
+                    <span className="text-label-sm font-bold normal-case text-on-surface">{label}</span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </section>
 
         <section>

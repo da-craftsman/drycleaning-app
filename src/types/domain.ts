@@ -1,4 +1,4 @@
-import type { LogisticsType, PaymentMethod, ServiceTier, TicketCategory, TicketPriority } from '@/types/database'
+import type { LogisticsType, PaymentMethod, Profile, ServiceTier, TicketCategory, TicketPriority } from '@/types/database'
 
 export interface CartItem {
   cartItemId: string
@@ -45,4 +45,13 @@ export interface CreateOrderInput {
   details: CheckoutDetails
   imageDataUrls: string[]
   paymentMethod: PaymentMethod
+}
+
+/** Per-customer rollup for the admin Customers list — orders/spend computed from their order history, not stored directly. */
+export interface CustomerSummary {
+  profile: Profile
+  orderCount: number
+  /** Sum of `total` across orders with `payment_status === 'paid'` — matches the revenue definition used on the admin dashboard. */
+  totalSpend: number
+  lastOrderAt: string | null
 }

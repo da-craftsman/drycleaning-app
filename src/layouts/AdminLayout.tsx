@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ClipboardList, Tags, MessageSquare, Newspaper, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Users, Tags, MapPin, Image as ImageIcon, MessageSquare, Newspaper, Settings, LogOut } from 'lucide-react'
 import { Logo, LogoMark } from '@/components/brand/Logo'
 import { AdminBottomNav } from '@/components/navigation/AdminBottomNav'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -14,7 +14,10 @@ import { cn } from '@/lib/utils'
 const sidebarLinks = [
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false },
+  { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false },
   { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false },
+  { to: paths.adminZones, label: 'Zones', icon: MapPin, end: false },
+  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, end: false },
   { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false },
   { to: paths.adminBlog, label: 'Blog', icon: Newspaper, end: false },
   { to: paths.adminSettings, label: 'Settings', icon: Settings, end: false },
@@ -33,11 +36,11 @@ function AdminLayout() {
   return (
     <TooltipProvider>
       <div className="flex min-h-svh w-full min-w-0">
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-outline-variant/40 bg-surface-container-lowest md:flex">
-          <Link to={paths.admin} className="flex h-16 items-center border-b border-outline-variant/40 px-stack-md">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-outline-variant/40 bg-surface-container-lowest md:sticky md:top-0 md:flex md:h-svh">
+          <Link to={paths.admin} className="flex h-16 shrink-0 items-center border-b border-outline-variant/40 px-stack-md">
             <Logo />
           </Link>
-          <nav className="flex flex-1 flex-col gap-1 p-stack-md" aria-label="Admin">
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-stack-md" aria-label="Admin">
             {sidebarLinks.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}

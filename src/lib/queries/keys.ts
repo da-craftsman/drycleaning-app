@@ -26,4 +26,6 @@ export const queryKeys = {
 
   profile: (userId: string) => ['profile', userId] as const,
   session: ['session'] as const,
+
+  allCustomers: ['customers', 'all'] as const,
 } as const

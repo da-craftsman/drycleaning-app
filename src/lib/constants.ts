@@ -8,7 +8,17 @@ export const business = {
   address: 'No. 7 Elder Anthony Nwobodo Street, Lomalinda Extension, Enugu, Nigeria',
 } as const
 
-export function whatsappLink(message?: string) {
-  const base = `https://wa.me/${business.whatsappNumber}`
+/** Converts a local Nigerian number ("08098765432") to the digits-only, country-code-first format wa.me expects. Already-international numbers pass through unchanged. */
+function toWhatsappDigits(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.startsWith('234')) return digits
+  if (digits.startsWith('0')) return `234${digits.slice(1)}`
+  return digits
+}
+
+/** Without `phoneNumber`, links to the business's own WhatsApp (customer contacting us). With it, links to that number instead (us contacting a customer). */
+export function whatsappLink(message?: string, phoneNumber?: string) {
+  const number = phoneNumber ? toWhatsappDigits(phoneNumber) : business.whatsappNumber
+  const base = `https://wa.me/${number}`
   return message ? `${base}?text=${encodeURIComponent(message)}` : base
 }
