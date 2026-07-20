@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, ClipboardList, MessageSquare, Menu, Plus } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useUnreadNotifications } from '@/lib/queries/useNotifications'
 import { paths } from '@/routes/paths'
 import { cn } from '@/lib/utils'
 import {
@@ -10,17 +12,20 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
+import type { NotificationType } from '@/types/database'
 
-const items = [
+const items: { to: string; label: string; icon: typeof LayoutDashboard; end: boolean; dotType?: NotificationType }[] = [
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false },
-  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false },
+  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order' },
+  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket' },
   { to: paths.adminSettings, label: 'Menu', icon: Menu, end: false },
 ]
 
 /** Admin mobile bottom nav — Dashboard/Orders/Tickets/Menu plus a central FAB for walk-in orders. */
 function AdminBottomNav() {
   const [walkInOpen, setWalkInOpen] = useState(false)
+  const { profile } = useAuth()
+  const { data: unread } = useUnreadNotifications(profile?.id)
   const [before, after] = [items.slice(0, 2), items.slice(2)]
 
   return (
@@ -30,7 +35,7 @@ function AdminBottomNav() {
         aria-label="Admin"
       >
         {before.map((item) => (
-          <AdminNavItem key={item.to} {...item} />
+          <AdminNavItem key={item.to} {...item} showDot={Boolean(item.dotType && (unread ?? []).some((n) => n.type === item.dotType))} />
         ))}
 
         <button
@@ -45,7 +50,7 @@ function AdminBottomNav() {
         </button>
 
         {after.map((item) => (
-          <AdminNavItem key={item.to} {...item} />
+          <AdminNavItem key={item.to} {...item} showDot={Boolean(item.dotType && (unread ?? []).some((n) => n.type === item.dotType))} />
         ))}
       </nav>
 
@@ -71,11 +76,13 @@ function AdminNavItem({
   label,
   icon: Icon,
   end,
+  showDot,
 }: {
   to: string
   label: string
   icon: typeof LayoutDashboard
   end: boolean
+  showDot?: boolean
 }) {
   return (
     <NavLink
@@ -90,7 +97,10 @@ function AdminNavItem({
     >
       {({ isActive }) => (
         <>
-          <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />
+          <span className="relative flex">
+            <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />
+            {showDot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-error" />}
+          </span>
           <span>{label}</span>
         </>
       )}

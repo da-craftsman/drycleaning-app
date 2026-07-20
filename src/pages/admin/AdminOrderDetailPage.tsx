@@ -14,9 +14,11 @@ import { OrderStatusBadge, orderStatusLabels } from '@/features/dashboard/OrderS
 import { ReceiptDownload } from '@/features/dashboard/ReceiptDownload'
 import { formatNaira } from '@/features/catalog/ItemCard'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
 import { useOrder, useOrderItems, useOrderStatusHistory } from '@/lib/queries/useOrders'
 import { useUpdateOrderStatus, useMarkOrderPaid } from '@/lib/queries/useCreateOrder'
 import { useProfile } from '@/lib/queries/useProfile'
+import { useMarkNotificationsReadForOrder } from '@/lib/queries/useNotifications'
 import { whatsappLink } from '@/lib/constants'
 import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
@@ -182,10 +184,19 @@ export default function AdminOrderDetailPage() {
   const { data: items } = useOrderItems(id)
   const { data: history = [] } = useOrderStatusHistory(id)
   const { data: profile } = useProfile(order?.user_id)
+  const { profile: viewer } = useAuth()
   const updateStatus = useUpdateOrderStatus()
   const markPaid = useMarkOrderPaid()
+  const markNotificationsRead = useMarkNotificationsReadForOrder(viewer?.id)
   const { toast } = useToast()
   const [rider, setRider] = useState('')
+
+  useEffect(() => {
+    if (id) markNotificationsRead.mutate(id)
+    // Only ever needs to fire once per order visited — omitting markNotificationsRead from deps
+    // avoids re-firing it every render (the mutate function identity isn't guaranteed stable).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, viewer?.id])
 
   useEffect(() => {
     if (order) setRider(order.rider_name ?? '')

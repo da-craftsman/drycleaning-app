@@ -69,7 +69,17 @@ export async function createTicket(userId: string, authorName: string, input: Ne
     author_name: authorName,
     message: input.description,
   })
+  // Best-effort: the ticket is already created at this point, so a mailer hiccup shouldn't block
+  // the customer's flow — the in-app notification (via the DB trigger) still reaches admins either way.
+  sendTicketNotificationEmail(data.id).catch((err) => console.error('Failed to send ticket notification email', err))
   return data
+}
+
+/** Emails every admin about a new ticket, with a link, the customer's phone, and their message. Best-effort. */
+export async function sendTicketNotificationEmail(ticketId: string): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase!.functions.invoke('send-ticket-notification', { body: { ticketId } })
+  if (error) throw error
 }
 
 export async function addTicketMessage(

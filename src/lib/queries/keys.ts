@@ -28,4 +28,7 @@ export const queryKeys = {
   session: ['session'] as const,
 
   allCustomers: ['customers', 'all'] as const,
+
+  notifications: (userId: string) => ['notifications', userId] as const,
+  unreadNotifications: (userId: string) => ['notifications', userId, 'unread'] as const,
 } as const

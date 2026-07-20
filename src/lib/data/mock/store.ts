@@ -4,6 +4,7 @@ import type {
   ClothingItem,
   ComplaintTicket,
   DeliveryZone,
+  Notification,
   Order,
   OrderItem,
   OrderStatusHistoryEntry,
@@ -14,7 +15,7 @@ import type {
 
 // Bump this whenever seed data shape or content changes materially, so browsers with an older
 // cached mock DB (a different catalog, missing fields, etc.) reseed instead of reading stale data.
-const STORAGE_KEY = 'srl-mock-db-v9'
+const STORAGE_KEY = 'srl-mock-db-v10'
 
 /** Every seeded account starts with this password; changed per-user via updatePasswordMock. */
 export const MOCK_DEMO_PASSWORD = 'password123'
@@ -30,6 +31,7 @@ interface MockDb {
   complaintTickets: ComplaintTicket[]
   ticketMessages: TicketMessage[]
   blogPosts: BlogPost[]
+  notifications: Notification[]
   profiles: Profile[]
   /** userId -> password. Kept out of the Profile type so it never round-trips through query data. */
   passwords: Record<string, string>
@@ -47,6 +49,7 @@ function freshDb(): MockDb {
     complaintTickets: structuredClone(seed.complaintTickets),
     ticketMessages: structuredClone(seed.ticketMessages),
     blogPosts: structuredClone(seed.blogPosts),
+    notifications: [],
     profiles: structuredClone(seed.profiles),
     passwords: Object.fromEntries(seed.profiles.map((p) => [p.id, MOCK_DEMO_PASSWORD])),
   }

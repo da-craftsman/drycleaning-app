@@ -1,12 +1,20 @@
+import { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { TicketThread } from '@/features/tickets/TicketThread'
 import { useAuth } from '@/hooks/useAuth'
+import { useMarkNotificationsReadForTicket } from '@/lib/queries/useNotifications'
 import { paths } from '@/routes/paths'
 
 export default function AdminTicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { profile } = useAuth()
+  const markNotificationsRead = useMarkNotificationsReadForTicket(profile?.id)
+
+  useEffect(() => {
+    if (id && profile?.id) markNotificationsRead.mutate(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, profile?.id])
 
   if (!id || !profile) return null
 

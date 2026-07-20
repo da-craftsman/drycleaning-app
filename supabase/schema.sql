@@ -23,6 +23,7 @@ create type order_status as enum (
 create type ticket_status as enum ('open', 'in_progress', 'resolved');
 create type ticket_priority as enum ('low', 'normal', 'high', 'urgent');
 create type ticket_category as enum ('damaged_item', 'missing_item', 'delay', 'billing', 'quality', 'other');
+create type notification_type as enum ('new_order', 'order_status_changed', 'new_ticket', 'ticket_reply');
 
 -- ── Tables ───────────────────────────────────────────────────────────────
 
@@ -150,6 +151,24 @@ create table ticket_messages (
   created_at timestamptz not null default now()
 );
 
+-- In-app notifications for both sides: customers get 'order_status_changed'/'ticket_reply', admins
+-- get 'new_order'/'new_ticket'. Rows are created entirely by the triggers below (see "Notification
+-- triggers" further down) — the app never inserts into this table directly, only reads its own rows
+-- and marks them read. related_order_id/related_ticket_id let the UI mark a whole item's
+-- notifications read at once when that specific order/ticket is opened.
+create table notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references profiles (id) on delete cascade,
+  type notification_type not null,
+  title text not null,
+  body text not null,
+  link_path text not null,
+  related_order_id uuid references orders (id) on delete cascade,
+  related_ticket_id uuid references complaint_tickets (id) on delete cascade,
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create table blog_posts (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -174,6 +193,10 @@ create index complaint_tickets_user_id_idx on complaint_tickets (user_id);
 create index ticket_messages_ticket_id_idx on ticket_messages (ticket_id);
 create index blog_posts_slug_idx on blog_posts (slug);
 create index clothing_items_category_id_idx on clothing_items (category_id);
+-- Powers "does this recipient have any unread notifications of type X" (admin sidebar red dots,
+-- customer bell) — partial index since only unread rows are ever queried that way.
+create index notifications_recipient_unread_idx on notifications (recipient_id, type) where read_at is null;
+create index notifications_recipient_created_idx on notifications (recipient_id, created_at desc);
 
 -- ── Row Level Security ───────────────────────────────────────────────────
 
@@ -189,6 +212,7 @@ alter table order_status_history enable row level security;
 alter table complaint_tickets enable row level security;
 alter table ticket_messages enable row level security;
 alter table blog_posts enable row level security;
+alter table notifications enable row level security;
 
 create function is_admin() returns boolean as $$
   select exists (select 1 from profiles where id = auth.uid() and role = 'admin');
@@ -261,6 +285,82 @@ create policy "blog_public_read_published" on blog_posts for select
   using (published_at is not null or is_admin());
 create policy "blog_admin_write" on blog_posts for all using (is_admin()) with check (is_admin());
 
+-- notifications: recipients read/mark-read their own only. No insert/delete policy for any
+-- role — rows are only ever created by the security-definer trigger functions below, which run as
+-- the functions' owner and so bypass RLS entirely; the app itself never inserts a row directly.
+create policy "notifications_select_own" on notifications for select
+  using (recipient_id = auth.uid());
+create policy "notifications_update_own" on notifications for update
+  using (recipient_id = auth.uid())
+  with check (recipient_id = auth.uid());
+
+-- ── Notification triggers ───────────────────────────────────────────────
+-- All four fire server-side regardless of which client/Edge Function performed the write, so
+-- notifications can never be missed by forgetting to call something from the app. Each is
+-- `security definer`, same technique as is_admin() above, so it can read across profiles/orders/
+-- tickets despite RLS on the calling role.
+
+create function notify_admins_new_order() returns trigger as $$
+begin
+  insert into notifications (recipient_id, type, title, body, link_path, related_order_id)
+  select id, 'new_order', 'New order ' || new.display_id, 'A new order has been placed.', '/admin/orders/' || new.id, new.id
+  from profiles where role = 'admin';
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger trg_notify_admins_new_order
+  after insert on orders
+  for each row execute function notify_admins_new_order();
+
+create function notify_customer_order_status() returns trigger as $$
+begin
+  if new.status is distinct from old.status then
+    insert into notifications (recipient_id, type, title, body, link_path, related_order_id)
+    values (
+      new.user_id, 'order_status_changed', 'Order ' || new.display_id || ' updated',
+      'Your order status is now: ' || replace(new.status::text, '_', ' '),
+      '/account/orders/' || new.id, new.id
+    );
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger trg_notify_customer_order_status
+  after update on orders
+  for each row execute function notify_customer_order_status();
+
+create function notify_admins_new_ticket() returns trigger as $$
+begin
+  insert into notifications (recipient_id, type, title, body, link_path, related_ticket_id)
+  select id, 'new_ticket', 'New ticket: ' || new.subject, 'A customer submitted a new support ticket.', '/admin/tickets/' || new.id, new.id
+  from profiles where role = 'admin';
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger trg_notify_admins_new_ticket
+  after insert on complaint_tickets
+  for each row execute function notify_admins_new_ticket();
+
+create function notify_customer_ticket_reply() returns trigger as $$
+declare
+  ticket_user_id uuid;
+begin
+  if new.author_role = 'admin' then
+    select user_id into ticket_user_id from complaint_tickets where id = new.ticket_id;
+    insert into notifications (recipient_id, type, title, body, link_path, related_ticket_id)
+    values (ticket_user_id, 'ticket_reply', 'New reply on your ticket', new.message, '/account/tickets/' || new.ticket_id, new.ticket_id);
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger trg_notify_customer_ticket_reply
+  after insert on ticket_messages
+  for each row execute function notify_customer_ticket_reply();
+
 -- ── Storage bucket policies ─────────────────────────────────────────────
 -- Create the buckets first (Dashboard → Storage, or supabase CLI), then apply:
 --
@@ -332,14 +432,16 @@ from (values
 join clothing_categories c on c.name = v.category_name;
 
 insert into delivery_zones (name, pickup_fee, delivery_fee) values
+  ('Lomalinda Extension', 1500, 1500),
   ('Independence Layout', 2500, 2500),
-  ('New Haven', 2500, 2500),
-  ('Trans-Ekulu', 2500, 2500),
-  ('GRA', 2500, 2500),
-  ('Achara Layout', 2500, 2500),
-  ('Abakpa Nike', 2500, 2500),
   ('Uwani', 2500, 2500),
-  ('Coal Camp', 2500, 2500);
+  ('Asata', 2500, 2500),
+  ('GRA', 2500, 2500),
+  ('Holy Ghost', 2500, 2500),
+  ('New Haven', 3000, 3000),
+  ('Ugwuaji', 3000, 3000),
+  ('Gariki', 3000, 3000),
+  ('Achara', 3000, 3000);
 
 insert into promo_banners (id, title, subtitle, image_url, link_url, is_active) values
   ('banner-main', 'Welcome Offer', '20% off your first service', null, '/order', true);

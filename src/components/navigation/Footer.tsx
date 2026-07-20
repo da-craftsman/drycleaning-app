@@ -21,6 +21,13 @@ const columns = [
       { to: paths.trackLookup, label: 'Track an Order' },
     ],
   },
+  {
+    title: 'Legal',
+    links: [
+      { to: paths.privacyPolicy, label: 'Privacy Policy' },
+      { to: paths.termsOfService, label: 'Terms of Service' },
+    ],
+  },
 ]
 
 /** Public marketing footer — links, WhatsApp contact, socials. Not shown inside the authenticated order/account/admin flows. */
@@ -55,7 +62,7 @@ function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-stack-lg sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-stack-lg sm:grid-cols-3">
             {columns.map((col) => (
               <div key={col.title} className="flex flex-col gap-2">
                 <p className="text-label-sm uppercase text-clean-white/50">{col.title}</p>

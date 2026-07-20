@@ -6,6 +6,8 @@ export const paths = {
   blog: '/blog',
   blogPost: (slug: string) => `/blog/${slug}`,
   support: '/support',
+  privacyPolicy: '/privacy-policy',
+  termsOfService: '/terms-of-service',
   trackLookup: '/track',
   track: (orderId: string) => `/track/${orderId}`,
   login: '/login',

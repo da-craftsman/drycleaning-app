@@ -26,6 +26,8 @@ export type TicketPriority = 'low' | 'normal' | 'high' | 'urgent'
 
 export type TicketCategory = 'damaged_item' | 'missing_item' | 'delay' | 'billing' | 'quality' | 'other'
 
+export type NotificationType = 'new_order' | 'order_status_changed' | 'new_ticket' | 'ticket_reply'
+
 export interface Profile {
   id: string
   role: UserRole
@@ -142,6 +144,19 @@ export interface TicketMessage {
   author_role: UserRole
   author_name: string
   message: string
+  created_at: string
+}
+
+export interface Notification {
+  id: string
+  recipient_id: string
+  type: NotificationType
+  title: string
+  body: string
+  link_path: string
+  related_order_id: string | null
+  related_ticket_id: string | null
+  read_at: string | null
   created_at: string
 }
 

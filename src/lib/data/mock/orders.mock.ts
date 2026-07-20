@@ -1,4 +1,5 @@
 import { db, delay, persist } from '@/lib/data/mock/store'
+import { notifyAdminsNewOrderMock, notifyCustomerOrderStatusMock } from '@/lib/data/mock/notifications.mock'
 import { generateOrderDisplayId } from '@/lib/utils'
 import type { Order, OrderItem, OrderStatus, OrderStatusHistoryEntry } from '@/types/database'
 import type { CreateOrderInput } from '@/types/domain'
@@ -85,6 +86,9 @@ export async function createOrderMock(input: CreateOrderInput): Promise<Order> {
   db.orderImages.push(...orderImages)
   db.orderStatusHistory.push({ id: `${order.id}-hist-0`, order_id: order.id, status: order.status, created_at: now })
   persist()
+  // Mirrors the real schema's trg_notify_admins_new_order trigger (see supabase/schema.sql) —
+  // mock mode has no database triggers, so this has to be done explicitly here.
+  notifyAdminsNewOrderMock(order)
 
   return delay(order, 600)
 }
@@ -115,12 +119,15 @@ export function updateOrderStatusMock(orderId: string, status: OrderStatus, ride
   const now = new Date().toISOString()
   // Only log a history entry when the status genuinely changes, since this is also called for
   // rider-only saves (same status re-submitted) which shouldn't spam the Activity tab.
-  if (order.status !== status) {
+  const statusChanged = order.status !== status
+  if (statusChanged) {
     db.orderStatusHistory.push({ id: `${orderId}-hist-${db.orderStatusHistory.length}`, order_id: orderId, status, created_at: now })
   }
   order.status = status
   if (riderName !== undefined) order.rider_name = riderName
   order.updated_at = now
   persist()
+  // Mirrors the real schema's trg_notify_customer_order_status trigger (see supabase/schema.sql).
+  if (statusChanged) notifyCustomerOrderStatusMock(order)
   return delay(order)
 }

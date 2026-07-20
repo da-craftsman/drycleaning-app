@@ -17,6 +17,8 @@ import BlogListPage from '@/pages/public/BlogListPage'
 import BlogPostPage from '@/pages/public/BlogPostPage'
 import SupportPage from '@/pages/public/SupportPage'
 import TrackOrderPage from '@/pages/public/TrackOrderPage'
+import PrivacyPolicyPage from '@/pages/public/PrivacyPolicyPage'
+import TermsOfServicePage from '@/pages/public/TermsOfServicePage'
 import NotFoundPage from '@/pages/public/NotFoundPage'
 
 import NewOrderPage from '@/pages/order/NewOrderPage'
@@ -91,6 +93,8 @@ function App() {
         <Route path={paths.blog} element={<BlogListPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path={paths.support} element={<SupportPage />} />
+        <Route path={paths.privacyPolicy} element={<PrivacyPolicyPage />} />
+        <Route path={paths.termsOfService} element={<TermsOfServicePage />} />
         <Route path={paths.trackLookup} element={<TrackOrderPage />} />
         <Route path="/track/:orderId" element={<TrackOrderPage />} />
 

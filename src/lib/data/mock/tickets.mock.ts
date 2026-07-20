@@ -1,4 +1,5 @@
 import { db, delay, persist } from '@/lib/data/mock/store'
+import { notifyAdminsNewTicketMock, notifyCustomerTicketReplyMock } from '@/lib/data/mock/notifications.mock'
 import type { ComplaintTicket, TicketMessage, TicketStatus } from '@/types/database'
 import type { NewTicketInput } from '@/types/domain'
 
@@ -50,6 +51,8 @@ export function createTicketMock(
     created_at: now,
   })
   persist()
+  // Mirrors the real schema's trg_notify_admins_new_ticket trigger (see supabase/schema.sql).
+  notifyAdminsNewTicketMock(ticket)
   return delay(ticket, 500)
 }
 
@@ -72,6 +75,8 @@ export function addTicketMessageMock(
   db.ticketMessages.push(entry)
   if (authorRole === 'admin' && ticket.status === 'open') ticket.status = 'in_progress'
   persist()
+  // Mirrors the real schema's trg_notify_customer_ticket_reply trigger (see supabase/schema.sql).
+  if (authorRole === 'admin') notifyCustomerTicketReplyMock(ticket, message)
   return delay(entry)
 }
 

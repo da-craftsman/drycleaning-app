@@ -8,17 +8,19 @@ import { Toaster } from '@/components/ui/toaster'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { useUnreadNotifications } from '@/lib/queries/useNotifications'
 import { paths } from '@/routes/paths'
 import { cn } from '@/lib/utils'
+import type { NotificationType } from '@/types/database'
 
-const sidebarLinks = [
+const sidebarLinks: { to: string; label: string; icon: typeof LayoutDashboard; end: boolean; dotType?: NotificationType }[] = [
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false },
+  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order' },
   { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false },
   { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false },
   { to: paths.adminZones, label: 'Zones', icon: MapPin, end: false },
   { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, end: false },
-  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false },
+  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket' },
   { to: paths.adminBlog, label: 'Blog', icon: Newspaper, end: false },
   { to: paths.adminSettings, label: 'Settings', icon: Settings, end: false },
 ]
@@ -27,6 +29,7 @@ const sidebarLinks = [
 function AdminLayout() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const { data: unread } = useUnreadNotifications(profile?.id)
 
   const handleSignOut = async () => {
     await signOut()
@@ -41,22 +44,28 @@ function AdminLayout() {
             <Logo />
           </Link>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-stack-md" aria-label="Admin">
-            {sidebarLinks.map(({ to, label, icon: Icon, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded px-3 py-2.5 text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface',
-                    isActive && 'bg-primary/10 text-primary',
-                  )
-                }
-              >
-                <Icon className="h-5 w-5" />
-                {label}
-              </NavLink>
-            ))}
+            {sidebarLinks.map(({ to, label, icon: Icon, end, dotType }) => {
+              const showDot = dotType ? (unread ?? []).some((n) => n.type === dotType) : false
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded px-3 py-2.5 text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface',
+                      isActive && 'bg-primary/10 text-primary',
+                    )
+                  }
+                >
+                  <span className="relative flex">
+                    <Icon className="h-5 w-5" />
+                    {showDot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-error" />}
+                  </span>
+                  {label}
+                </NavLink>
+              )
+            })}
           </nav>
           <div className="border-t border-outline-variant/40 p-stack-md">
             {profile && <p className="mb-2 truncate text-label-sm text-on-surface-variant">{profile.full_name}</p>}

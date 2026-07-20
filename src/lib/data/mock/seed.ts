@@ -108,15 +108,20 @@ export const clothingItems: ClothingItem[] = categories.flatMap((cat) =>
 
 // ── Delivery zones (Enugu) ──────────────────────────────────────────────
 
+// 2026-07-20: replaced with the real coverage area + fee tiers given for launch. GRA and Holy
+// Ghost were grouped into the ₦2,500 tier (the "etc." after Independence Layout/Uwani/Asata in the
+// original list) since no other tier was specified for them — flagged for the user to confirm.
 export const deliveryZones: DeliveryZone[] = [
+  { id: 'zone-lomalinda-extension', name: 'Lomalinda Extension', pickup_fee: 1500, delivery_fee: 1500 },
   { id: 'zone-independence-layout', name: 'Independence Layout', pickup_fee: 2500, delivery_fee: 2500 },
-  { id: 'zone-new-haven', name: 'New Haven', pickup_fee: 2500, delivery_fee: 2500 },
-  { id: 'zone-trans-ekulu', name: 'Trans-Ekulu', pickup_fee: 2500, delivery_fee: 2500 },
-  { id: 'zone-gra', name: 'GRA', pickup_fee: 2500, delivery_fee: 2500 },
-  { id: 'zone-achara-layout', name: 'Achara Layout', pickup_fee: 2500, delivery_fee: 2500 },
-  { id: 'zone-abakpa-nike', name: 'Abakpa Nike', pickup_fee: 2500, delivery_fee: 2500 },
   { id: 'zone-uwani', name: 'Uwani', pickup_fee: 2500, delivery_fee: 2500 },
-  { id: 'zone-coal-camp', name: 'Coal Camp', pickup_fee: 2500, delivery_fee: 2500 },
+  { id: 'zone-asata', name: 'Asata', pickup_fee: 2500, delivery_fee: 2500 },
+  { id: 'zone-gra', name: 'GRA', pickup_fee: 2500, delivery_fee: 2500 },
+  { id: 'zone-holy-ghost', name: 'Holy Ghost', pickup_fee: 2500, delivery_fee: 2500 },
+  { id: 'zone-new-haven', name: 'New Haven', pickup_fee: 3000, delivery_fee: 3000 },
+  { id: 'zone-ugwuaji', name: 'Ugwuaji', pickup_fee: 3000, delivery_fee: 3000 },
+  { id: 'zone-gariki', name: 'Gariki', pickup_fee: 3000, delivery_fee: 3000 },
+  { id: 'zone-achara', name: 'Achara', pickup_fee: 3000, delivery_fee: 3000 },
 ]
 
 // ── Promo banner ─────────────────────────────────────────────────────────
