@@ -1,6 +1,8 @@
 import { useParams, Link } from 'react-router-dom'
-import { ChevronLeft, Newspaper } from 'lucide-react'
+import { ChevronLeft, Newspaper, Shirt } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useBlogPostBySlug } from '@/lib/queries/useBlogPosts'
 import { paths } from '@/routes/paths'
 
@@ -47,7 +49,24 @@ export default function BlogPostPage() {
         {post.published_at && new Date(post.published_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
       </p>
 
-      <div className="mt-stack-md text-body-lg text-on-surface">{post.content}</div>
+      <div className="mt-stack-md flex flex-col gap-stack-md text-body-lg text-on-surface">
+        {post.content.split('\n\n').map((paragraph, i) => (
+          <p key={i}>{paragraph}</p>
+        ))}
+      </div>
+
+      <Card className="mt-stack-lg bg-primary/5">
+        <CardContent className="flex flex-col items-center gap-stack-sm py-stack-lg text-center">
+          <Shirt className="h-8 w-8 text-primary" strokeWidth={1.5} />
+          <p className="text-headline-md font-display text-on-surface">Ready to get your items looking their best?</p>
+          <p className="max-w-sm text-body-md text-on-surface-variant">
+            Book a pickup or drop off yourself: either way, we'll have it cleaned, pressed, and back to you fast.
+          </p>
+          <Button size="lg" asChild className="mt-1">
+            <Link to={paths.order}>Book Your Order</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </article>
   )
 }

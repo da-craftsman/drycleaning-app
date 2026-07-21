@@ -5,7 +5,7 @@ const sections = [
     title: '1. Information We Collect',
     body: [
       `When you create an account or place an order with ${business.name}, we collect your full name, phone number, WhatsApp number, delivery/pickup address, and email address.`,
-      'When you pay by card or bank transfer through Paystack, Paystack processes your payment details directly — we never see or store your card number, CVV, or bank credentials.',
+      'When you pay by card or bank transfer through Paystack, Paystack processes your payment details directly: we never see or store your card number, CVV, or bank credentials.',
       'If you upload photos of stained or damaged items, those images are stored so our team can assess them alongside your order.',
     ],
   },
@@ -15,15 +15,15 @@ const sections = [
       'To create and manage your account, process and fulfill your orders, and communicate with you about order status, pickups, and deliveries.',
       'To respond to support tickets and complaints you raise with us.',
       'To send transactional emails (order confirmations, order-ready notices, account emails) and, where relevant, service updates via WhatsApp or SMS.',
-      'To improve our service and catalog based on order patterns — we do not sell your personal data to third parties.',
+      'To improve our service and catalog based on order patterns. We do not sell your personal data to third parties.',
     ],
   },
   {
     title: '3. Who We Share Data With',
     body: [
-      'Paystack — to process payments securely. See Paystack\'s own privacy policy for how they handle payment data.',
-      'Resend — our email delivery provider, used to send order and account emails.',
-      'Supabase — our database and authentication provider, which stores your account and order records.',
+      'Paystack: to process payments securely. See Paystack\'s own privacy policy for how they handle payment data.',
+      'Resend: our email delivery provider, used to send order and account emails.',
+      'Supabase: our database and authentication provider, which stores your account and order records.',
       'We do not share your personal information with any other third party for marketing purposes.',
     ],
   },
@@ -31,7 +31,7 @@ const sections = [
     title: '4. Data Retention',
     body: [
       'We retain your account and order history for as long as your account is active, and as needed to meet our legal, accounting, and tax obligations.',
-      'You may request deletion of your account and associated personal data at any time by contacting us — see Section 6.',
+      'You may request deletion of your account and associated personal data at any time by contacting us, see Section 6.',
     ],
   },
   {

@@ -1,6 +1,9 @@
 import { useRef } from 'react'
 import { Camera, X } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+
+const MAX_PHOTO_BYTES = 1 * 1024 * 1024
 
 function PhotoUpload({
   images,
@@ -14,10 +17,15 @@ function PhotoUpload({
   label?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return
     Array.from(files).forEach((file) => {
+      if (file.size > MAX_PHOTO_BYTES) {
+        toast({ title: 'Photo too large', description: `"${file.name}" is over 1MB. Please choose a smaller photo.`, variant: 'error' })
+        return
+      }
       const reader = new FileReader()
       reader.onload = () => onAdd(reader.result as string)
       reader.readAsDataURL(file)
@@ -38,7 +46,7 @@ function PhotoUpload({
       >
         <Camera className="h-6 w-6 text-on-surface-variant" strokeWidth={1.5} />
         <p className="text-label-md text-on-surface-variant">{label}</p>
-        <p className="text-label-sm text-on-surface-variant">Tap to browse or drag photos here</p>
+        <p className="text-label-sm text-on-surface-variant">Tap to browse or drag photos here. Max 1MB per photo.</p>
       </button>
       <input
         ref={inputRef}

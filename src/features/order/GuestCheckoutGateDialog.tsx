@@ -19,7 +19,7 @@ function GuestCheckoutGateDialog({ open, onOpenChange }: { open: boolean; onOpen
         <DialogHeader>
           <DialogTitle>Log in to continue</DialogTitle>
           <DialogDescription>
-            To complete a cleaning order, you'll need to log in or create an account first. Your cart is saved — we'll
+            To complete a cleaning order, you'll need to log in or create an account first. Your cart is saved, we'll
             bring you right back here afterward.
           </DialogDescription>
         </DialogHeader>

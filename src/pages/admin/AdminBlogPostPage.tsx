@@ -20,6 +20,8 @@ function slugify(title: string) {
     .replace(/(^-|-$)/g, '')
 }
 
+const MAX_FEATURE_IMAGE_BYTES = 1 * 1024 * 1024
+
 const emptyPost = {
   title: '',
   slug: '',
@@ -44,6 +46,10 @@ export default function AdminBlogPostPage() {
 
   const handleFeatureImage = async (file: File | undefined) => {
     if (!file) return
+    if (file.size > MAX_FEATURE_IMAGE_BYTES) {
+      toast({ title: 'Image too large', description: 'Please choose a file under 1MB.', variant: 'error' })
+      return
+    }
     const dataUrl = await readImageAsDataUrl(file)
     setForm((f) => ({ ...f, feature_image: dataUrl }))
   }
@@ -136,9 +142,12 @@ export default function AdminBlogPostPage() {
               <ImagePlus className="h-6 w-6" />
             </div>
           )}
-          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-            Upload image
-          </Button>
+          <div className="flex flex-col gap-1">
+            <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              Upload image
+            </Button>
+            <p className="text-label-sm text-on-surface-variant">Max 1MB.</p>
+          </div>
           <input
             ref={fileInputRef}
             id="feature-image"

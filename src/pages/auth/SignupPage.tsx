@@ -60,7 +60,7 @@ export default function SignupPage() {
         <h1 className="font-display text-headline-md text-on-surface">Account created!</h1>
         <p className="text-body-md text-on-surface-variant">
           {isCheckoutFlow
-            ? "You're all set — pick up right where you left off, or take a look around your account first."
+            ? "You're all set: pick up right where you left off, or take a look around your account first."
             : 'What would you like to do next?'}
         </p>
         <div className="flex w-full flex-col gap-2">

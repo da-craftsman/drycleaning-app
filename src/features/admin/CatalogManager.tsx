@@ -12,6 +12,8 @@ import { uploadThumbnail } from '@/lib/data/storage'
 import { getErrorMessage } from '@/lib/utils'
 import type { ClothingItem } from '@/types/database'
 
+const MAX_THUMBNAIL_BYTES = 1 * 1024 * 1024
+
 function ItemRow({ item }: { item: ClothingItem }) {
   const updateItem = useUpdateClothingItem()
   const { toast } = useToast()
@@ -37,6 +39,10 @@ function ItemRow({ item }: { item: ClothingItem }) {
   }
 
   const handleThumbnail = async (file: File) => {
+    if (file.size > MAX_THUMBNAIL_BYTES) {
+      toast({ title: 'Image too large', description: 'Please choose a file under 1MB.', variant: 'error' })
+      return
+    }
     try {
       const url = await uploadThumbnail(file)
       await updateItem.mutateAsync({ itemId: item.id, patch: { thumbnail_url: url } })
@@ -141,6 +147,8 @@ function CatalogManager() {
           </button>
         ))}
       </div>
+
+      <p className="text-label-sm text-on-surface-variant">Tap an item's thumbnail to replace it. Max 1MB per image.</p>
 
       <div className="flex flex-col gap-2">
         {visibleItems?.map((item) => (

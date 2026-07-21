@@ -39,7 +39,7 @@ export default function UiKitPage() {
   return (
     <TooltipProvider>
       <div className="mx-auto flex w-full min-w-0 max-w-shell flex-col gap-stack-lg p-stack-lg">
-        <h1 className="text-display-lg font-display text-laundry-blue-deep">UI Kit — Pristine Efficiency</h1>
+        <h1 className="text-display-lg font-display text-laundry-blue-deep">UI Kit: Pristine Efficiency</h1>
 
         <Section title="Brand">
           <div className="flex flex-wrap items-center gap-stack-md">
@@ -57,8 +57,8 @@ export default function UiKitPage() {
             <p className="text-headline-lg font-display">Headline Large</p>
             <p className="text-headline-lg-mobile font-display md:hidden">Headline Large (mobile)</p>
             <p className="text-headline-md font-display">Headline Medium</p>
-            <p className="text-body-lg">Body Large — Hanken Grotesk for dense lists of 80+ items.</p>
-            <p className="text-body-md">Body Medium — the workhorse copy size.</p>
+            <p className="text-body-lg">Body Large: Hanken Grotesk for dense lists of 80+ items.</p>
+            <p className="text-body-md">Body Medium: the workhorse copy size.</p>
             <p className="text-label-md font-semibold uppercase">Label Medium</p>
             <p className="text-label-sm font-bold uppercase">Label Small</p>
           </div>
@@ -185,9 +185,9 @@ export default function UiKitPage() {
                   <SelectValue placeholder="Select a zone" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="independence-layout">Independence Layout — ₦500</SelectItem>
-                  <SelectItem value="new-haven">New Haven — ₦700</SelectItem>
-                  <SelectItem value="trans-ekulu">Trans-Ekulu — ₦600</SelectItem>
+                  <SelectItem value="independence-layout">Independence Layout: ₦500</SelectItem>
+                  <SelectItem value="new-haven">New Haven: ₦700</SelectItem>
+                  <SelectItem value="trans-ekulu">Trans-Ekulu: ₦600</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -251,7 +251,7 @@ export default function UiKitPage() {
                 <>
                   <p className="font-display text-headline-md">Responsive item picker</p>
                   <p className="mt-1 text-body-md text-on-surface-variant">
-                    Sheet on mobile, centered modal on desktop — same content.
+                    Sheet on mobile, centered modal on desktop: same content.
                   </p>
                 </>
               }

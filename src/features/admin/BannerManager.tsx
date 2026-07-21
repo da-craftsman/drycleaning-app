@@ -11,7 +11,7 @@ import { readImageAsDataUrl } from '@/lib/readImageAsDataUrl'
 import { getErrorMessage } from '@/lib/utils'
 import type { PromoBanner } from '@/types/database'
 
-const MAX_BANNER_IMAGE_BYTES = 2 * 1024 * 1024
+const MAX_BANNER_IMAGE_BYTES = 1 * 1024 * 1024
 
 function BannerManager() {
   const { data: banner, isLoading } = usePromoBanner()
@@ -40,7 +40,7 @@ function BannerManager() {
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     if (file.size > MAX_BANNER_IMAGE_BYTES) {
-      toast({ title: 'Image too large', description: 'Please choose a file under 2MB.', variant: 'error' })
+      toast({ title: 'Image too large', description: 'Please choose a file under 1MB.', variant: 'error' })
       return
     }
     const dataUrl = await readImageAsDataUrl(file)
@@ -82,8 +82,8 @@ function BannerManager() {
                 Upload image
               </Button>
               <p className="text-label-sm text-on-surface-variant">
-                PNG, JPG or GIF. Use a wide landscape photo, around 1600×700px, with the main subject centered — it fills the
-                banner edge-to-edge and crops in slightly on very narrow or very wide screens. Max 2MB. Falls back to a text
+                PNG, JPG or GIF. Use a wide landscape photo, around 1600×700px, with the main subject centered: it fills the
+                banner edge-to-edge and crops in slightly on very narrow or very wide screens. Max 1MB. Falls back to a text
                 banner if empty.
               </p>
             </div>

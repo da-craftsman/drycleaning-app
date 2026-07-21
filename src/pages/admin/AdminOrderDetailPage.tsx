@@ -136,10 +136,10 @@ function CustomerDetailsCard({ order, items, profile }: { order: Order; items: O
 
         <div className="flex flex-col gap-1 text-body-md">
           <p className="text-on-surface-variant">
-            Name: <span className="text-on-surface">{profile?.full_name ?? '—'}</span>
+            Name: <span className="text-on-surface">{profile?.full_name ?? 'N/A'}</span>
           </p>
           <p className="text-on-surface-variant">
-            Email: <span className="text-on-surface">{profile?.email ?? '—'}</span>
+            Email: <span className="text-on-surface">{profile?.email ?? 'N/A'}</span>
           </p>
           <p className="text-on-surface-variant">
             Phone: <span className="text-on-surface">{order.phone}</span>
