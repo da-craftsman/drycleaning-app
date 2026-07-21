@@ -36,15 +36,15 @@ export default function LoginPage() {
     try {
       const profile = await signIn(values);
       toast({ title: 'Login successful', description: `Welcome back, ${profile.full_name}.`, variant: 'success' });
-      const roleDefault =
-        profile.role === 'admin' ? paths.admin : paths.account;
+      const isStaff = profile.role === 'admin' || profile.role === 'superadmin';
+      const roleDefault = isStaff ? paths.admin : paths.account;
       // Only honor a redirect-back target if it matches the signed-in role — a stale `from`
       // left over from a previous session (e.g. an admin logging in after a customer logged
       // out on a protected page) must not send the wrong role into the wrong area.
       const from = location.state?.from;
       const fromMatchesRole =
         from &&
-        (profile.role === 'admin'
+        (isStaff
           ? from.startsWith('/admin')
           : !from.startsWith('/admin'));
       navigate(fromMatchesRole ? from! : roleDefault);

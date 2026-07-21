@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getAllClothingItems, getClothingItem, getClothingItems, updateClothingItem } from '@/lib/data/items'
+import { deleteClothingItem, getAllClothingItems, getClothingItem, getClothingItems, updateClothingItem } from '@/lib/data/items'
 import { queryKeys } from '@/lib/queries/keys'
 import type { ClothingItem } from '@/types/database'
 
@@ -30,6 +30,17 @@ export function useUpdateClothingItem() {
       itemId: string
       patch: Partial<Pick<ClothingItem, 'price_regular' | 'price_white' | 'price_express' | 'is_active' | 'thumbnail_url'>>
     }) => updateClothingItem(itemId, patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.items })
+      queryClient.invalidateQueries({ queryKey: queryKeys.allItems })
+    },
+  })
+}
+
+export function useDeleteClothingItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (itemId: string) => deleteClothingItem(itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.items })
       queryClient.invalidateQueries({ queryKey: queryKeys.allItems })

@@ -23,3 +23,12 @@ export function updateClothingItemMock(
   persist()
   return delay(item)
 }
+
+export function deleteClothingItemMock(itemId: string): Promise<void> {
+  if (db.orderItems.some((oi) => oi.item_id === itemId)) {
+    throw new Error("This item has past orders attached to it and can't be deleted — hide it instead.")
+  }
+  db.clothingItems = db.clothingItems.filter((i) => i.id !== itemId)
+  persist()
+  return delay(undefined)
+}

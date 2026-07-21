@@ -32,59 +32,65 @@ export const categories: ClothingCategory[] = [
 ]
 
 // [name, thumbnailFile, regular, white, express, timeRegular, timeWhite, timeExpress]
-type ItemRow = [string, string, number, number, number, string, string, string]
+// A null price/time means that tier isn't offered for the item at all (not free) — mirrors
+// supabase/schema.sql's seed, which carries the same real business price list (2026-07-21).
+type ItemRow = [string, string, number | null, number | null, number | null, string | null, string | null, string | null]
 
 const itemsByCategory: Record<string, ItemRow[]> = {
   'cat-everyday': [
-    ['Shirts & Tops', 'shirts-and-tops.png', 800, 1000, 1600, '3-4 days', '2 days', '24h'],
-    ['Jeans', 'jeans.png', 1200, 1500, 2200, '3-4 days', '2 days', '24h'],
-    ['Singlet', 'singlet.png', 500, 650, 1000, '2-3 days', '2 days', '24h'],
-    ['Sweater', 'sweater.png', 1400, 1700, 2500, '3-4 days', '2 days', '24h'],
-    ['Tracksuit (2-Piece)', 'tracksuit-two-piece.png', 1800, 2200, 3200, '3-4 days', '2 days', '24h'],
-    ['Skirt or Shorts', 'skirt-or-shorts.png', 800, 1000, 1600, '2-3 days', '2 days', '24h'],
+    ['Shirt / Polo', 'shirts-and-tops.png', 350, 500, 1000, '2-3 days', '2 days', '24h'],
+    ['Jeans Trouser', 'jeans.png', 500, 700, 1200, '3-4 days', '2 days', '24h'],
+    ['Shorts', 'skirt-or-shorts.png', 400, 600, 1000, '2-3 days', '2 days', '24h'],
+    ['Singlet', 'singlet.png', 250, 300, 500, '2-3 days', '2 days', '24h'],
+    ['Boxers', 'singlet.png', 300, 400, 600, '2-3 days', '2 days', '24h'],
+    ['Sweater', 'sweater.png', 500, 800, 1200, '3-4 days', '2 days', '24h'],
   ],
   'cat-corporate': [
-    ["Men's Suit", 'mens-suit.png', 4500, 5200, 7000, '4-5 days', '3 days', '48h'],
-    ["Ladies' Suit", 'ladies-suit.png', 4200, 4900, 6600, '4-5 days', '3 days', '48h'],
-    ['Suit Jacket', 'suit-jacket.png', 2200, 2600, 3600, '3-4 days', '2 days', '24h'],
-    ['Trousers', 'trousers.png', 1100, 1400, 2100, '3-4 days', '2 days', '24h'],
-    ['Lab Coat', 'lab-coat.png', 1300, 1600, 2400, '3-4 days', '2 days', '24h'],
+    ['Complete Male Suit', 'mens-suit.png', 3500, 4500, 8000, '4-5 days', '3 days', '48h'],
+    ['Female Suit', 'ladies-suit.png', 3000, 4000, 7000, '4-5 days', '3 days', '48h'],
+    ['Suit Jacket', 'suit-jacket.png', 800, 1000, 2000, '3-4 days', '2 days', '24h'],
+    ['Plain Trouser', 'trousers.png', 450, 600, 1200, '3-4 days', '2 days', '24h'],
+    ['Labcoat', 'lab-coat.png', 500, null, 1000, '3-4 days', null, '24h'],
   ],
   'cat-native': [
-    ['Agbada', 'agbada.png', 5000, 5800, 7800, '4-5 days', '3 days', '48h'],
-    ['Buba and Wrapper', 'buba-and-wrapper.png', 2600, 3100, 4300, '4-5 days', '3 days', '48h'],
-    ['Jalabia', 'jalabia.png', 2000, 2400, 3400, '3-4 days', '2 days', '24h'],
-    ['Senator Wear', 'senator-wear.png', 2800, 3300, 4600, '3-4 days', '2 days', '24h'],
-    ['Isiagu', 'isiagu.png', 2200, 2600, 3600, '3-4 days', '2 days', '24h'],
+    ['Complete Agbada', 'agbada.png', 2000, 2800, 5000, '4-5 days', '3 days', '48h'],
+    ['Buba and Wrapper', 'buba-and-wrapper.png', 800, 1500, 2000, '4-5 days', '3 days', '48h'],
+    ['Jalabia', 'jalabia.png', 500, 800, 1200, '3-4 days', '2 days', '24h'],
+    ['Senator Wears', 'senator-wear.png', 1000, 1500, 2000, '3-4 days', '2 days', '24h'],
+    ['Up and Down', 'senator-wear.png', 800, 1500, 1800, '3-4 days', '2 days', '24h'],
+    ['Native', 'senator-wear.png', 800, 1500, 1800, '3-4 days', '2 days', '24h'],
+    ['Cotton (Single)', 'buba-and-wrapper.png', 500, 700, 1000, '3-4 days', '2 days', '24h'],
+    ['Cotton (Double)', 'buba-and-wrapper.png', 800, 1000, 1500, '3-4 days', '2 days', '24h'],
   ],
   'cat-womens': [
-    ['Blouse', 'blouse.png', 900, 1150, 1800, '3-4 days', '2 days', '24h'],
-    ['Evening Gown', 'evening-gown.png', 2800, 3300, 4600, '4-5 days', '3 days', '48h'],
-    ['Skirt and Blouse Set', 'skirt-and-blouse.png', 1500, 1850, 2700, '3-4 days', '2 days', '24h'],
+    ['Gown', 'evening-gown.png', 400, 600, 1000, '3-4 days', '2 days', '24h'],
+    ['Skirt and Blouse', 'skirt-and-blouse.png', 800, 1500, 2000, '3-4 days', '2 days', '24h'],
+    ['Skirt', 'skirt-or-shorts.png', 400, 500, 1000, '2-3 days', '2 days', '24h'],
   ],
   'cat-bedding': [
-    ['Bedspread', 'bedspread.png', 2200, 2700, 3800, '3-4 days', '2 days', '24h'],
-    ['Duvet', 'duvet.png', 3500, 4200, 6000, '4-5 days', '3 days', '48h'],
-    ['Pillow Case', 'pillow-case.png', 400, 550, 900, '2-3 days', '2 days', '24h'],
+    ['Bedspread', 'bedspread.png', 800, 1200, 1800, '3-4 days', '2 days', '24h'],
+    ['Duvet', 'duvet.png', 2000, 3000, 4500, '4-5 days', '3 days', '48h'],
+    ['Pillow Case', 'pillow-case.png', 150, 200, 300, '2-3 days', '2 days', '24h'],
   ],
   'cat-household': [
-    ['Curtain (Single Panel)', 'curtain-single-panel.png', 2000, 2400, 3400, '4-5 days', '3 days', '48h'],
-    ['Curtain (Double Panel)', 'curtain-double-panel.png', 3400, 4000, 5600, '4-5 days', '3 days', '48h'],
-    ['Center Rug (Large)', 'big-center-rug.png', 3200, 3800, 5200, '4-5 days', '3 days', '48h'],
-    ['Center Rug (Small)', 'small-center-rug.png', 1800, 2200, 3200, '3-4 days', '2 days', '24h'],
-    ['Towel', 'towel.png', 700, 900, 1400, '2-3 days', '2 days', '24h'],
+    ['Towel', 'towel.png', 600, 1000, 1800, '2-3 days', '2 days', '24h'],
+    ['Small Center Rug', 'small-center-rug.png', 3000, 6000, null, '4-5 days', '3 days', null],
+    ['Big Center Rug', 'big-center-rug.png', 5000, 10000, null, '4-5 days', '3 days', null],
   ],
   'cat-special': [
-    ['Wedding Dress', 'wedding-dress.png', 8000, 9500, 13000, '5-6 days', '4 days', '72h'],
-    ['Shoes', 'shoes.png', 1800, 2200, 3200, '3-4 days', '2 days', '24h'],
-    ['Teddy Bear (Large)', 'big-teddy-bear.png', 2200, 2700, 3800, '3-4 days', '2 days', '24h'],
-    ['Teddy Bear (Small)', 'small-teddy-bear.png', 1200, 1500, 2200, '2-3 days', '2 days', '24h'],
+    ['Wedding Gown', 'wedding-dress.png', null, 10000, 25000, null, '4 days', '72h'],
+    ['Shoe', 'shoes.png', 1000, 1500, 3500, '3-4 days', '2 days', '24h'],
+    ['Small Teddy Bear', 'small-teddy-bear.png', 1500, 2500, null, '3-4 days', '2 days', null],
+    ['Big Teddy Bear', 'big-teddy-bear.png', 3500, 6000, null, '4-5 days', '3 days', null],
   ],
   'cat-accessories': [
-    ['Cap', 'cap.png', 400, 550, 900, '2-3 days', '2 days', '24h'],
-    ['Ties and Scarves', 'ties-and-scarves.png', 600, 750, 1200, '2-3 days', '2 days', '24h'],
-    ['School Bag', 'school-bag.png', 1200, 1500, 2200, '3-4 days', '2 days', '24h'],
-    ['Travel Bag', 'travel-bag.png', 1600, 2000, 2900, '3-4 days', '2 days', '24h'],
+    ['Hat / Cap', 'cap.png', 300, 400, 600, '2-3 days', '2 days', '24h'],
+    ['Scarf', 'ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'],
+    ['Tie', 'ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'],
+    ['Handkerchief', 'ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'],
+    ['Stockings', 'ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'],
+    ['School Bags', 'school-bag.png', 1000, 2000, 2500, '3-4 days', '2 days', '24h'],
+    ['Traveling Bags', 'travel-bag.png', 1500, 3000, 3500, '3-4 days', '2 days', '24h'],
   ],
 }
 
@@ -140,13 +146,14 @@ export const promoBanner: PromoBanner = {
 export const profiles: Profile[] = [
   {
     id: 'user-admin',
-    role: 'admin',
+    role: 'superadmin',
     full_name: 'Chidinma Okafor',
     phone: '08031234567',
     whatsapp: '08031234567',
     address: 'Shalah Rex HQ, Independence Layout, Enugu',
     email: 'admin@shalahrexlaundry.com',
     email_verified_at: '2025-11-01T09:00:00.000Z',
+    permissions: [],
     created_at: '2025-11-01T09:00:00.000Z',
   },
   {
@@ -158,6 +165,7 @@ export const profiles: Profile[] = [
     address: '14 Garden Avenue, Independence Layout, Enugu',
     email: 'demo@shalahrexlaundry.com',
     email_verified_at: '2025-12-10T14:30:00.000Z',
+    permissions: [],
     created_at: '2025-12-10T14:30:00.000Z',
   },
 ]
@@ -189,8 +197,10 @@ function buildOrder(opts: {
   const zone = deliveryZones[opts.n % deliveryZones.length]
 
   const orderItems: OrderItem[] = opts.lines.map((line, i) => {
-    const unitPrice =
+    // Non-null by construction — every seeded line below picks a tier the referenced item actually offers.
+    const unitPrice = (
       line.tier === 'regular' ? line.item.price_regular : line.tier === 'white' ? line.item.price_white : line.item.price_express
+    )!
     return {
       id: id(`oi-${opts.n}`, i),
       order_id: id('order', opts.n),

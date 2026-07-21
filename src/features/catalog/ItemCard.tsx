@@ -1,5 +1,6 @@
 import { Plus, Shirt } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { cheapestAvailablePrice } from '@/features/catalog/tierPricing'
 import type { ClothingItem } from '@/types/database'
 
 function formatNaira(amount: number) {
@@ -7,6 +8,7 @@ function formatNaira(amount: number) {
 }
 
 function ItemCard({ item, onSelect }: { item: ClothingItem; onSelect: (item: ClothingItem) => void }) {
+  const fromPrice = cheapestAvailablePrice(item)
   return (
     <Card
       role="button"
@@ -30,7 +32,7 @@ function ItemCard({ item, onSelect }: { item: ClothingItem; onSelect: (item: Clo
       <div className="flex flex-1 flex-col justify-between gap-2 p-stack-sm">
         <div>
           <p className="truncate text-label-md font-bold normal-case text-on-surface">{item.name}</p>
-          <p className="text-label-sm text-on-surface-variant">from {formatNaira(item.price_regular)}</p>
+          {fromPrice !== null && <p className="text-label-sm text-on-surface-variant">from {formatNaira(fromPrice)}</p>}
         </div>
         <span className="flex items-center justify-center gap-1 rounded-full border border-primary py-1.5 text-label-sm font-bold text-primary">
           <Plus className="h-3.5 w-3.5" /> Add to Wash

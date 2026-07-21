@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { paths } from '@/routes/paths'
 import { Skeleton } from '@/components/ui/skeleton'
+import type { AdminPermission } from '@/types/database'
 
 function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -51,4 +52,42 @@ function AdminRoute() {
   return <Outlet />
 }
 
-export { ProtectedRoute, RequireVerifiedEmail, AdminRoute }
+/** Nested inside AdminRoute — redirects sub-admins lacking `feature` back to the admin dashboard. */
+function RequirePermission({ feature }: { feature: AdminPermission }) {
+  const { hasPermission, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto w-full max-w-shell px-margin-mobile py-stack-lg">
+        <Skeleton className="h-40 w-full" />
+      </div>
+    )
+  }
+
+  if (!hasPermission(feature)) {
+    return <Navigate to={paths.admin} replace />
+  }
+
+  return <Outlet />
+}
+
+/** Nested inside AdminRoute — guards superadmin-only sections (e.g. managing other admins). */
+function RequireSuperAdmin() {
+  const { isSuperAdmin, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto w-full max-w-shell px-margin-mobile py-stack-lg">
+        <Skeleton className="h-40 w-full" />
+      </div>
+    )
+  }
+
+  if (!isSuperAdmin) {
+    return <Navigate to={paths.admin} replace />
+  }
+
+  return <Outlet />
+}
+
+export { ProtectedRoute, RequireVerifiedEmail, AdminRoute, RequirePermission, RequireSuperAdmin }

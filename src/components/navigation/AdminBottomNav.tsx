@@ -12,21 +12,22 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import type { NotificationType } from '@/types/database'
+import type { AdminPermission, NotificationType } from '@/types/database'
 
-const items: { to: string; label: string; icon: typeof LayoutDashboard; end: boolean; dotType?: NotificationType }[] = [
+const items: { to: string; label: string; icon: typeof LayoutDashboard; end: boolean; dotType?: NotificationType; permission?: AdminPermission }[] = [
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order' },
-  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket' },
+  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order', permission: 'orders' },
+  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket', permission: 'tickets' },
   { to: paths.adminSettings, label: 'Menu', icon: Menu, end: false },
 ]
 
 /** Admin mobile bottom nav — Dashboard/Orders/Tickets/Menu plus a central FAB for walk-in orders. */
 function AdminBottomNav() {
   const [walkInOpen, setWalkInOpen] = useState(false)
-  const { profile } = useAuth()
+  const { profile, hasPermission } = useAuth()
   const { data: unread } = useUnreadNotifications(profile?.id)
-  const [before, after] = [items.slice(0, 2), items.slice(2)]
+  const visibleItems = items.filter((item) => !item.permission || hasPermission(item.permission))
+  const [before, after] = [visibleItems.slice(0, 2), visibleItems.slice(2)]
 
   return (
     <>

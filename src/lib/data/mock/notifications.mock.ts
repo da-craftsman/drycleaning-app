@@ -8,7 +8,7 @@ import type { ComplaintTicket, Notification, Order } from '@/types/database'
 export function notifyAdminsNewOrderMock(order: Order) {
   const now = new Date().toISOString()
   db.profiles
-    .filter((p) => p.role === 'admin')
+    .filter((p) => p.role === 'admin' || p.role === 'superadmin')
     .forEach((admin) => {
       db.notifications.push({
         id: `notif-${db.notifications.length}`,
@@ -45,7 +45,7 @@ export function notifyCustomerOrderStatusMock(order: Order) {
 export function notifyAdminsNewTicketMock(ticket: ComplaintTicket) {
   const now = new Date().toISOString()
   db.profiles
-    .filter((p) => p.role === 'admin')
+    .filter((p) => p.role === 'admin' || p.role === 'superadmin')
     .forEach((admin) => {
       db.notifications.push({
         id: `notif-${db.notifications.length}`,

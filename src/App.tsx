@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { AppLayout } from '@/layouts/AppLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
-import { ProtectedRoute, AdminRoute } from '@/components/auth/ProtectedRoute'
+import { ProtectedRoute, AdminRoute, RequirePermission, RequireSuperAdmin } from '@/components/auth/ProtectedRoute'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { queryKeys } from '@/lib/queries/keys'
 import { paths } from '@/routes/paths'
@@ -52,6 +52,7 @@ const AdminTicketDetailPage = lazy(() => import('@/pages/admin/AdminTicketDetail
 const AdminBlogPage = lazy(() => import('@/pages/admin/AdminBlogPage'))
 const AdminBlogPostPage = lazy(() => import('@/pages/admin/AdminBlogPostPage'))
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'))
+const AdminAdminsPage = lazy(() => import('@/pages/admin/AdminAdminsPage'))
 
 // Lazy-loaded (and only routed to in dev) so the dev-only kit page is excluded from production bundles.
 const UiKitPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/UiKitPage')) : null
@@ -130,18 +131,37 @@ function App() {
       <Route element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
           <Route path={paths.admin} element={<AdminDashboardPage />} />
-          <Route path={paths.adminOrders} element={<AdminOrdersPage />} />
-          <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
-          <Route path={paths.adminCustomers} element={<AdminCustomersPage />} />
-          <Route path="/admin/customers/:id" element={<AdminCustomerDetailPage />} />
-          <Route path={paths.adminCatalog} element={<AdminCatalogPage />} />
-          <Route path={paths.adminZones} element={<AdminZonesPage />} />
-          <Route path={paths.adminBanner} element={<AdminBannerPage />} />
-          <Route path={paths.adminTickets} element={<AdminTicketsPage />} />
-          <Route path="/admin/tickets/:id" element={<AdminTicketDetailPage />} />
-          <Route path={paths.adminBlog} element={<AdminBlogPage />} />
-          <Route path="/admin/blog/:id" element={<AdminBlogPostPage />} />
           <Route path={paths.adminSettings} element={<AdminSettingsPage />} />
+
+          <Route element={<RequirePermission feature="orders" />}>
+            <Route path={paths.adminOrders} element={<AdminOrdersPage />} />
+            <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="customers" />}>
+            <Route path={paths.adminCustomers} element={<AdminCustomersPage />} />
+            <Route path="/admin/customers/:id" element={<AdminCustomerDetailPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="catalog" />}>
+            <Route path={paths.adminCatalog} element={<AdminCatalogPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="zones" />}>
+            <Route path={paths.adminZones} element={<AdminZonesPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="banner" />}>
+            <Route path={paths.adminBanner} element={<AdminBannerPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="tickets" />}>
+            <Route path={paths.adminTickets} element={<AdminTicketsPage />} />
+            <Route path="/admin/tickets/:id" element={<AdminTicketDetailPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="blog" />}>
+            <Route path={paths.adminBlog} element={<AdminBlogPage />} />
+            <Route path="/admin/blog/:id" element={<AdminBlogPostPage />} />
+          </Route>
+
+          <Route element={<RequireSuperAdmin />}>
+            <Route path={paths.adminAdmins} element={<AdminAdminsPage />} />
+          </Route>
         </Route>
       </Route>
 

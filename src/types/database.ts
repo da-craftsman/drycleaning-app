@@ -1,4 +1,6 @@
-export type UserRole = 'customer' | 'admin'
+export type UserRole = 'customer' | 'admin' | 'superadmin'
+
+export type AdminPermission = 'orders' | 'customers' | 'catalog' | 'zones' | 'banner' | 'tickets' | 'blog'
 
 export type ServiceTier = 'regular' | 'white' | 'express'
 
@@ -37,6 +39,7 @@ export interface Profile {
   address: string | null
   email: string
   email_verified_at: string | null
+  permissions: AdminPermission[]
   created_at: string
 }
 
@@ -51,12 +54,13 @@ export interface ClothingItem {
   category_id: string
   name: string
   thumbnail_url: string | null
-  price_regular: number
-  price_white: number
-  price_express: number
-  time_regular: string
-  time_white: string
-  time_express: string
+  // Null means that tier isn't offered for this item (e.g. no express option) — not free.
+  price_regular: number | null
+  price_white: number | null
+  price_express: number | null
+  time_regular: string | null
+  time_white: string | null
+  time_express: string | null
   is_active: boolean
 }
 

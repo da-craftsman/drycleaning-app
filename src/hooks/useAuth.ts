@@ -10,6 +10,7 @@ import {
 } from '@/lib/data/auth'
 import { useSession } from '@/lib/queries/useSession'
 import { queryKeys } from '@/lib/queries/keys'
+import type { AdminPermission } from '@/types/database'
 
 /** Session + auth actions in one place. `profile` is null while loading and while signed out. */
 export function useAuth() {
@@ -49,11 +50,17 @@ export function useAuth() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.session }),
   })
 
+  const isSuperAdmin = profile?.role === 'superadmin'
+  const permissions = profile?.permissions ?? []
+
   return {
     profile,
     isLoading,
     isAuthenticated: Boolean(profile),
-    isAdmin: profile?.role === 'admin',
+    isAdmin: profile?.role === 'admin' || isSuperAdmin,
+    isSuperAdmin,
+    permissions,
+    hasPermission: (feature: AdminPermission) => isSuperAdmin || permissions.includes(feature),
     signIn: signInMutation.mutateAsync,
     signInStatus: signInMutation,
     signUp: signUpMutation.mutateAsync,

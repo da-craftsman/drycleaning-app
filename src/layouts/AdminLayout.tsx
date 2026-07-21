@@ -1,6 +1,18 @@
 import { Suspense } from 'react'
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ClipboardList, Users, Tags, MapPin, Image as ImageIcon, MessageSquare, Newspaper, Settings, LogOut } from 'lucide-react'
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Users,
+  Tags,
+  MapPin,
+  Image as ImageIcon,
+  MessageSquare,
+  Newspaper,
+  Settings,
+  ShieldCheck,
+  LogOut,
+} from 'lucide-react'
 import { Logo, LogoMark } from '@/components/brand/Logo'
 import { AdminBottomNav } from '@/components/navigation/AdminBottomNav'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -11,25 +23,37 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUnreadNotifications } from '@/lib/queries/useNotifications'
 import { paths } from '@/routes/paths'
 import { cn } from '@/lib/utils'
-import type { NotificationType } from '@/types/database'
+import type { AdminPermission, NotificationType } from '@/types/database'
 
-const sidebarLinks: { to: string; label: string; icon: typeof LayoutDashboard; end: boolean; dotType?: NotificationType }[] = [
+const sidebarLinks: {
+  to: string
+  label: string
+  icon: typeof LayoutDashboard
+  end: boolean
+  dotType?: NotificationType
+  permission?: AdminPermission
+  superAdminOnly?: boolean
+}[] = [
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order' },
-  { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false },
-  { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false },
-  { to: paths.adminZones, label: 'Zones', icon: MapPin, end: false },
-  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, end: false },
-  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket' },
-  { to: paths.adminBlog, label: 'Blog', icon: Newspaper, end: false },
+  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order', permission: 'orders' },
+  { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false, permission: 'customers' },
+  { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false, permission: 'catalog' },
+  { to: paths.adminZones, label: 'Zones', icon: MapPin, end: false, permission: 'zones' },
+  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, end: false, permission: 'banner' },
+  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket', permission: 'tickets' },
+  { to: paths.adminBlog, label: 'Blog', icon: Newspaper, end: false, permission: 'blog' },
+  { to: paths.adminAdmins, label: 'Admins', icon: ShieldCheck, end: false, superAdminOnly: true },
   { to: paths.adminSettings, label: 'Settings', icon: Settings, end: false },
 ]
 
 /** Admin shell: desktop sidebar, mobile bottom nav with a walk-in-order FAB. */
 function AdminLayout() {
-  const { profile, signOut } = useAuth()
+  const { profile, signOut, hasPermission, isSuperAdmin } = useAuth()
   const navigate = useNavigate()
   const { data: unread } = useUnreadNotifications(profile?.id)
+  const visibleLinks = sidebarLinks.filter(
+    (link) => (!link.permission || hasPermission(link.permission)) && (!link.superAdminOnly || isSuperAdmin),
+  )
 
   const handleSignOut = async () => {
     await signOut()
@@ -44,7 +68,7 @@ function AdminLayout() {
             <Logo />
           </Link>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-stack-md" aria-label="Admin">
-            {sidebarLinks.map(({ to, label, icon: Icon, end, dotType }) => {
+            {visibleLinks.map(({ to, label, icon: Icon, end, dotType }) => {
               const showDot = dotType ? (unread ?? []).some((n) => n.type === dotType) : false
               return (
                 <NavLink

@@ -15,7 +15,7 @@ import type {
 
 // Bump this whenever seed data shape or content changes materially, so browsers with an older
 // cached mock DB (a different catalog, missing fields, etc.) reseed instead of reading stale data.
-const STORAGE_KEY = 'srl-mock-db-v10'
+const STORAGE_KEY = 'srl-mock-db-v12'
 
 /** Every seeded account starts with this password; changed per-user via updatePasswordMock. */
 export const MOCK_DEMO_PASSWORD = 'password123'

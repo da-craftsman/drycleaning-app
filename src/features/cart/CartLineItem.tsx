@@ -1,6 +1,7 @@
 import { Minus, Plus, Trash2, Shirt } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatNaira } from '@/features/catalog/ItemCard'
+import { availableTiers, tierPrice, tierTime, TIER_OPTIONS } from '@/features/catalog/tierPricing'
 import { useCartStore } from '@/store/useCartStore'
 import { useClothingItem } from '@/lib/queries/useClothingItems'
 import type { CartItem } from '@/types/domain'
@@ -13,11 +14,15 @@ function CartLineItem({ line }: { line: CartItem }) {
   const updateTier = useCartStore((s) => s.updateTier)
   const removeItem = useCartStore((s) => s.removeItem)
   const { data: fullItem } = useClothingItem(line.itemId)
+  // Falls back to every tier while the item is still loading — the current tier (already valid,
+  // set when this line was added) stays selectable either way.
+  const selectableTiers = fullItem ? availableTiers(fullItem) : TIER_OPTIONS
 
   const handleTierChange = (tier: ServiceTier) => {
     if (!fullItem) return
-    const unitPrice = tier === 'regular' ? fullItem.price_regular : tier === 'white' ? fullItem.price_white : fullItem.price_express
-    const readyIn = tier === 'regular' ? fullItem.time_regular : tier === 'white' ? fullItem.time_white : fullItem.time_express
+    const unitPrice = tierPrice(fullItem, tier)
+    const readyIn = tierTime(fullItem, tier)
+    if (unitPrice === null || readyIn === null) return
     updateTier(line.cartItemId, tier, unitPrice, readyIn)
   }
 
@@ -49,7 +54,7 @@ function CartLineItem({ line }: { line: CartItem }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(Object.keys(tierLabels) as ServiceTier[]).map((t) => (
+            {selectableTiers.map(({ tier: t }) => (
               <SelectItem key={t} value={t}>
                 {tierLabels[t]}
               </SelectItem>

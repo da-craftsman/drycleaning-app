@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Shirt } from 'lucide-react'
+import { Shirt, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useCategories } from '@/lib/queries/useCategories'
-import { useAllClothingItems, useUpdateClothingItem } from '@/lib/queries/useClothingItems'
+import { useAllClothingItems, useDeleteClothingItem, useUpdateClothingItem } from '@/lib/queries/useClothingItems'
 import { uploadThumbnail } from '@/lib/data/storage'
 import { getErrorMessage } from '@/lib/utils'
 import type { ClothingItem } from '@/types/database'
@@ -16,19 +16,20 @@ const MAX_THUMBNAIL_BYTES = 1 * 1024 * 1024
 
 function ItemRow({ item }: { item: ClothingItem }) {
   const updateItem = useUpdateClothingItem()
+  const deleteItem = useDeleteClothingItem()
   const { toast } = useToast()
-  const [regular, setRegular] = useState(String(item.price_regular))
-  const [white, setWhite] = useState(String(item.price_white))
-  const [express, setExpress] = useState(String(item.price_express))
+  const [regular, setRegular] = useState(item.price_regular === null ? '' : String(item.price_regular))
+  const [white, setWhite] = useState(item.price_white === null ? '' : String(item.price_white))
+  const [express, setExpress] = useState(item.price_express === null ? '' : String(item.price_express))
 
   const save = () => {
     updateItem.mutate(
       {
         itemId: item.id,
         patch: {
-          price_regular: Number(regular) || 0,
-          price_white: Number(white) || 0,
-          price_express: Number(express) || 0,
+          price_regular: regular.trim() === '' ? null : Number(regular),
+          price_white: white.trim() === '' ? null : Number(white),
+          price_express: express.trim() === '' ? null : Number(express),
         },
       },
       {
@@ -36,6 +37,14 @@ function ItemRow({ item }: { item: ClothingItem }) {
         onError: (err) => toast({ title: 'Failed to update prices', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
       },
     )
+  }
+
+  const remove = () => {
+    if (!window.confirm(`Permanently delete "${item.name}"? This can't be undone.`)) return
+    deleteItem.mutate(item.id, {
+      onSuccess: () => toast({ title: 'Item deleted', variant: 'success' }),
+      onError: (err) => toast({ title: 'Failed to delete item', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+    })
   }
 
   const handleThumbnail = async (file: File) => {
@@ -88,15 +97,33 @@ function ItemRow({ item }: { item: ClothingItem }) {
         <div className="grid flex-1 grid-cols-3 gap-2">
           <div>
             <Label htmlFor={`${item.id}-regular`}>Regular</Label>
-            <Input id={`${item.id}-regular`} className="mt-1 h-9" value={regular} onChange={(e) => setRegular(e.target.value)} />
+            <Input
+              id={`${item.id}-regular`}
+              className="mt-1 h-9"
+              placeholder="Not offered"
+              value={regular}
+              onChange={(e) => setRegular(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor={`${item.id}-white`}>White Wash</Label>
-            <Input id={`${item.id}-white`} className="mt-1 h-9" value={white} onChange={(e) => setWhite(e.target.value)} />
+            <Input
+              id={`${item.id}-white`}
+              className="mt-1 h-9"
+              placeholder="Not offered"
+              value={white}
+              onChange={(e) => setWhite(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor={`${item.id}-express`}>Express</Label>
-            <Input id={`${item.id}-express`} className="mt-1 h-9" value={express} onChange={(e) => setExpress(e.target.value)} />
+            <Input
+              id={`${item.id}-express`}
+              className="mt-1 h-9"
+              placeholder="Not offered"
+              value={express}
+              onChange={(e) => setExpress(e.target.value)}
+            />
           </div>
         </div>
 
@@ -107,6 +134,15 @@ function ItemRow({ item }: { item: ClothingItem }) {
           <Button size="sm" variant={item.is_active ? 'subtle' : 'express'} onClick={toggleVisibility}>
             {item.is_active ? 'Visible' : 'Hidden'}
           </Button>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={deleteItem.isPending}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-error-container hover:text-on-error-container"
+            aria-label={`Delete ${item.name}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </div>
       </CardContent>
     </Card>

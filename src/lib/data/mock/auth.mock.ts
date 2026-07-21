@@ -49,6 +49,7 @@ export async function signUpMock(input: {
     address: null,
     email: input.email.trim().toLowerCase(),
     email_verified_at: null,
+    permissions: [],
     created_at: new Date().toISOString(),
   }
   db.profiles.push(profile)

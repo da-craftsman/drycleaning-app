@@ -31,4 +31,6 @@ export const queryKeys = {
 
   notifications: (userId: string) => ['notifications', userId] as const,
   unreadNotifications: (userId: string) => ['notifications', userId, 'unread'] as const,
+
+  adminUsers: ['adminUsers'] as const,
 } as const

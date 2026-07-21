@@ -1,23 +1,28 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Users, MapPin, Image as ImageIcon } from 'lucide-react'
+import { LogOut, Users, MapPin, Image as ImageIcon, ShieldCheck } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChangePasswordForm } from '@/features/account/ChangePasswordForm'
 import { useAuth } from '@/hooks/useAuth'
 import { business } from '@/lib/constants'
 import { paths } from '@/routes/paths'
+import type { AdminPermission } from '@/types/database'
 
 // Desktop reaches these via the sidebar directly — this list exists so they're still one tap away
 // from the mobile bottom nav's "Menu" destination, which is this page.
-const quickLinks = [
-  { to: paths.adminCustomers, label: 'Customers', icon: Users },
-  { to: paths.adminZones, label: 'Delivery Zones', icon: MapPin },
-  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon },
+const quickLinks: { to: string; label: string; icon: typeof Users; permission?: AdminPermission; superAdminOnly?: boolean }[] = [
+  { to: paths.adminCustomers, label: 'Customers', icon: Users, permission: 'customers' },
+  { to: paths.adminZones, label: 'Delivery Zones', icon: MapPin, permission: 'zones' },
+  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, permission: 'banner' },
+  { to: paths.adminAdmins, label: 'Admins', icon: ShieldCheck, superAdminOnly: true },
 ]
 
 export default function AdminSettingsPage() {
-  const { signOut } = useAuth()
+  const { signOut, hasPermission, isSuperAdmin } = useAuth()
   const navigate = useNavigate()
+  const visibleQuickLinks = quickLinks.filter(
+    (link) => (!link.permission || hasPermission(link.permission)) && (!link.superAdminOnly || isSuperAdmin),
+  )
 
   const handleSignOut = async () => {
     await signOut()
@@ -46,7 +51,7 @@ export default function AdminSettingsPage() {
         <section className="md:hidden">
           <h2 className="mb-stack-sm text-headline-md font-display text-on-surface">Manage</h2>
           <div className="grid grid-cols-3 gap-3">
-            {quickLinks.map(({ to, label, icon: Icon }) => (
+            {visibleQuickLinks.map(({ to, label, icon: Icon }) => (
               <Link key={to} to={to}>
                 <Card className="transition-shadow hover:shadow-soft-lift">
                   <CardContent className="flex flex-col items-center gap-2 py-stack-md text-center">

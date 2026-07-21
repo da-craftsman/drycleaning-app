@@ -86,9 +86,9 @@ export default function ServicesPage() {
                     <div className="flex-1">
                       <p className="text-label-md font-bold normal-case text-on-surface">{item.name}</p>
                       <div className="mt-1 flex flex-wrap gap-2">
-                        <Badge variant="neutral">{formatNaira(item.price_regular)} Regular</Badge>
-                        <Badge variant="primary">{formatNaira(item.price_white)} White</Badge>
-                        <Badge variant="express">{formatNaira(item.price_express)} Express</Badge>
+                        {item.price_regular !== null && <Badge variant="neutral">{formatNaira(item.price_regular)} Regular</Badge>}
+                        {item.price_white !== null && <Badge variant="primary">{formatNaira(item.price_white)} White</Badge>}
+                        {item.price_express !== null && <Badge variant="express">{formatNaira(item.price_express)} Express</Badge>}
                       </div>
                     </div>
                   </CardContent>

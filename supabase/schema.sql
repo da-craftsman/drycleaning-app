@@ -11,7 +11,7 @@ create extension if not exists "pgcrypto";
 
 -- ── Enums ────────────────────────────────────────────────────────────────
 
-create type user_role as enum ('customer', 'admin');
+create type user_role as enum ('customer', 'admin', 'superadmin');
 create type service_tier as enum ('regular', 'white', 'express');
 create type logistics_type as enum ('self_dropoff', 'pickup_only', 'delivery_only', 'pickup_and_delivery');
 create type payment_method as enum ('paystack', 'cash_on_delivery');
@@ -37,6 +37,9 @@ create table profiles (
   email text not null,
   email_verified_at timestamptz,
   welcome_email_sent_at timestamptz,
+  -- Sub-admin feature grants (e.g. 'orders','customers','catalog','zones','banner','tickets','blog').
+  -- Ignored for role='superadmin', which always has full access regardless of this array.
+  permissions text[] not null default '{}',
   created_at timestamptz not null default now()
 );
 
@@ -51,12 +54,14 @@ create table clothing_items (
   category_id uuid not null references clothing_categories (id) on delete cascade,
   name text not null,
   thumbnail_url text,
-  price_regular numeric(10, 2) not null,
-  price_white numeric(10, 2) not null,
-  price_express numeric(10, 2) not null,
-  time_regular text not null,
-  time_white text not null,
-  time_express text not null,
+  -- Null price/time on a tier means the item isn't offered at that tier at all (e.g. a rug with
+  -- no express option), not that it's free — the UI hides that tier rather than showing ₦0.
+  price_regular numeric(10, 2),
+  price_white numeric(10, 2),
+  price_express numeric(10, 2),
+  time_regular text,
+  time_white text,
+  time_express text,
   is_active boolean not null default true
 );
 
@@ -215,16 +220,28 @@ alter table blog_posts enable row level security;
 alter table notifications enable row level security;
 
 create function is_admin() returns boolean as $$
-  select exists (select 1 from profiles where id = auth.uid() and role = 'admin');
+  select exists (select 1 from profiles where id = auth.uid() and role in ('admin', 'superadmin'));
 $$ language sql security definer stable;
 
--- profiles: users read/update their own row; admins read all.
+-- Distinct from is_admin(): true only for the full-access tier. Used to gate the one write path
+-- that grants/revokes staff access itself (see profiles_admin_manage below) — every other admin
+-- RLS policy stays a blanket is_admin() check, since feature-level permission gating is enforced
+-- in the app's UI/routes, not in Postgres (sub-admins are still a full is_admin() staff account).
+create function is_superadmin() returns boolean as $$
+  select exists (select 1 from profiles where id = auth.uid() and role = 'superadmin');
+$$ language sql security definer stable;
+
+-- profiles: users read/update their own row; admins read all; superadmins can also manage
+-- (create/edit role+permissions for) any profile, which is how sub-admin accounts get provisioned.
 create policy "profiles_select_own_or_admin" on profiles for select
   using (id = auth.uid() or is_admin());
 create policy "profiles_update_own" on profiles for update
   using (id = auth.uid());
 create policy "profiles_insert_own" on profiles for insert
   with check (id = auth.uid());
+create policy "profiles_admin_manage" on profiles for update
+  using (is_superadmin())
+  with check (is_superadmin());
 
 -- clothing_categories / clothing_items: public read, admin write.
 create policy "categories_public_read" on clothing_categories for select using (true);
@@ -304,7 +321,7 @@ create function notify_admins_new_order() returns trigger as $$
 begin
   insert into notifications (recipient_id, type, title, body, link_path, related_order_id)
   select id, 'new_order', 'New order ' || new.display_id, 'A new order has been placed.', '/admin/orders/' || new.id, new.id
-  from profiles where role = 'admin';
+  from profiles where role in ('admin', 'superadmin');
   return new;
 end;
 $$ language plpgsql security definer;
@@ -335,7 +352,7 @@ create function notify_admins_new_ticket() returns trigger as $$
 begin
   insert into notifications (recipient_id, type, title, body, link_path, related_ticket_id)
   select id, 'new_ticket', 'New ticket: ' || new.subject, 'A customer submitted a new support ticket.', '/admin/tickets/' || new.id, new.id
-  from profiles where role = 'admin';
+  from profiles where role in ('admin', 'superadmin');
   return new;
 end;
 $$ language plpgsql security definer;
@@ -390,44 +407,57 @@ insert into clothing_categories (name, display_order) values
 -- thumbnail_url values point at /clothes/<file>.png, served from the frontend's public/ folder —
 -- if serving items from Supabase directly, upload the same files to the `thumbnails` bucket and
 -- update these to the bucket's public URLs instead.
+--
+-- Real business price list (2026-07-21). Null price/time = that tier isn't offered for the item
+-- (e.g. rugs and teddy bears have no express option; wedding gown has no regular option).
+-- Two known gaps in the source price sheet, resolved as noted:
+--   - "Traveling Bags" listed Normal 1500 / White 3500 / Express 3000 (express below white,
+--     inconsistent with every other row) — treated as a White/Express column swap and corrected
+--     to Normal 1500 / White 3000 / Express 3500.
+--   - "One Cotton" / "Double Cotton" and "Native" / "Up and Down" are filed under Native Wear as
+--     distinct items; flag for the user to rename/recategorize later if the assumption is wrong.
 insert into clothing_items (category_id, name, thumbnail_url, price_regular, price_white, price_express, time_regular, time_white, time_express)
 select c.id, v.name, v.thumbnail_url, v.price_regular, v.price_white, v.price_express, v.time_regular, v.time_white, v.time_express
 from (values
-  ('Everyday Wear', 'Shirts & Tops', '/clothes/shirts-and-tops.png', 800, 1000, 1600, '3-4 days', '2 days', '24h'),
-  ('Everyday Wear', 'Jeans', '/clothes/jeans.png', 1200, 1500, 2200, '3-4 days', '2 days', '24h'),
-  ('Everyday Wear', 'Singlet', '/clothes/singlet.png', 500, 650, 1000, '2-3 days', '2 days', '24h'),
-  ('Everyday Wear', 'Sweater', '/clothes/sweater.png', 1400, 1700, 2500, '3-4 days', '2 days', '24h'),
-  ('Everyday Wear', 'Tracksuit (2-Piece)', '/clothes/tracksuit-two-piece.png', 1800, 2200, 3200, '3-4 days', '2 days', '24h'),
-  ('Everyday Wear', 'Skirt or Shorts', '/clothes/skirt-or-shorts.png', 800, 1000, 1600, '2-3 days', '2 days', '24h'),
-  ('Corporate', 'Men''s Suit', '/clothes/mens-suit.png', 4500, 5200, 7000, '4-5 days', '3 days', '48h'),
-  ('Corporate', 'Ladies'' Suit', '/clothes/ladies-suit.png', 4200, 4900, 6600, '4-5 days', '3 days', '48h'),
-  ('Corporate', 'Suit Jacket', '/clothes/suit-jacket.png', 2200, 2600, 3600, '3-4 days', '2 days', '24h'),
-  ('Corporate', 'Trousers', '/clothes/trousers.png', 1100, 1400, 2100, '3-4 days', '2 days', '24h'),
-  ('Corporate', 'Lab Coat', '/clothes/lab-coat.png', 1300, 1600, 2400, '3-4 days', '2 days', '24h'),
-  ('Native Wear', 'Agbada', '/clothes/agbada.png', 5000, 5800, 7800, '4-5 days', '3 days', '48h'),
-  ('Native Wear', 'Buba and Wrapper', '/clothes/buba-and-wrapper.png', 2600, 3100, 4300, '4-5 days', '3 days', '48h'),
-  ('Native Wear', 'Jalabia', '/clothes/jalabia.png', 2000, 2400, 3400, '3-4 days', '2 days', '24h'),
-  ('Native Wear', 'Senator Wear', '/clothes/senator-wear.png', 2800, 3300, 4600, '3-4 days', '2 days', '24h'),
-  ('Native Wear', 'Isiagu', '/clothes/isiagu.png', 2200, 2600, 3600, '3-4 days', '2 days', '24h'),
-  ('Women''s', 'Blouse', '/clothes/blouse.png', 900, 1150, 1800, '3-4 days', '2 days', '24h'),
-  ('Women''s', 'Evening Gown', '/clothes/evening-gown.png', 2800, 3300, 4600, '4-5 days', '3 days', '48h'),
-  ('Women''s', 'Skirt and Blouse Set', '/clothes/skirt-and-blouse.png', 1500, 1850, 2700, '3-4 days', '2 days', '24h'),
-  ('Bedding', 'Bedspread', '/clothes/bedspread.png', 2200, 2700, 3800, '3-4 days', '2 days', '24h'),
-  ('Bedding', 'Duvet', '/clothes/duvet.png', 3500, 4200, 6000, '4-5 days', '3 days', '48h'),
-  ('Bedding', 'Pillow Case', '/clothes/pillow-case.png', 400, 550, 900, '2-3 days', '2 days', '24h'),
-  ('Household', 'Curtain (Single Panel)', '/clothes/curtain-single-panel.png', 2000, 2400, 3400, '4-5 days', '3 days', '48h'),
-  ('Household', 'Curtain (Double Panel)', '/clothes/curtain-double-panel.png', 3400, 4000, 5600, '4-5 days', '3 days', '48h'),
-  ('Household', 'Center Rug (Large)', '/clothes/big-center-rug.png', 3200, 3800, 5200, '4-5 days', '3 days', '48h'),
-  ('Household', 'Center Rug (Small)', '/clothes/small-center-rug.png', 1800, 2200, 3200, '3-4 days', '2 days', '24h'),
-  ('Household', 'Towel', '/clothes/towel.png', 700, 900, 1400, '2-3 days', '2 days', '24h'),
-  ('Special Care', 'Wedding Dress', '/clothes/wedding-dress.png', 8000, 9500, 13000, '5-6 days', '4 days', '72h'),
-  ('Special Care', 'Shoes', '/clothes/shoes.png', 1800, 2200, 3200, '3-4 days', '2 days', '24h'),
-  ('Special Care', 'Teddy Bear (Large)', '/clothes/big-teddy-bear.png', 2200, 2700, 3800, '3-4 days', '2 days', '24h'),
-  ('Special Care', 'Teddy Bear (Small)', '/clothes/small-teddy-bear.png', 1200, 1500, 2200, '2-3 days', '2 days', '24h'),
-  ('Accessories', 'Cap', '/clothes/cap.png', 400, 550, 900, '2-3 days', '2 days', '24h'),
-  ('Accessories', 'Ties and Scarves', '/clothes/ties-and-scarves.png', 600, 750, 1200, '2-3 days', '2 days', '24h'),
-  ('Accessories', 'School Bag', '/clothes/school-bag.png', 1200, 1500, 2200, '3-4 days', '2 days', '24h'),
-  ('Accessories', 'Travel Bag', '/clothes/travel-bag.png', 1600, 2000, 2900, '3-4 days', '2 days', '24h')
+  ('Everyday Wear', 'Shirt / Polo', '/clothes/shirts-and-tops.png', 350, 500, 1000, '2-3 days', '2 days', '24h'),
+  ('Everyday Wear', 'Jeans Trouser', '/clothes/jeans.png', 500, 700, 1200, '3-4 days', '2 days', '24h'),
+  ('Everyday Wear', 'Shorts', '/clothes/skirt-or-shorts.png', 400, 600, 1000, '2-3 days', '2 days', '24h'),
+  ('Everyday Wear', 'Singlet', '/clothes/singlet.png', 250, 300, 500, '2-3 days', '2 days', '24h'),
+  ('Everyday Wear', 'Boxers', '/clothes/singlet.png', 300, 400, 600, '2-3 days', '2 days', '24h'),
+  ('Everyday Wear', 'Sweater', '/clothes/sweater.png', 500, 800, 1200, '3-4 days', '2 days', '24h'),
+  ('Corporate', 'Complete Male Suit', '/clothes/mens-suit.png', 3500, 4500, 8000, '4-5 days', '3 days', '48h'),
+  ('Corporate', 'Female Suit', '/clothes/ladies-suit.png', 3000, 4000, 7000, '4-5 days', '3 days', '48h'),
+  ('Corporate', 'Suit Jacket', '/clothes/suit-jacket.png', 800, 1000, 2000, '3-4 days', '2 days', '24h'),
+  ('Corporate', 'Plain Trouser', '/clothes/trousers.png', 450, 600, 1200, '3-4 days', '2 days', '24h'),
+  ('Corporate', 'Labcoat', '/clothes/lab-coat.png', 500, null, 1000, '3-4 days', null, '24h'),
+  ('Native Wear', 'Complete Agbada', '/clothes/agbada.png', 2000, 2800, 5000, '4-5 days', '3 days', '48h'),
+  ('Native Wear', 'Buba and Wrapper', '/clothes/buba-and-wrapper.png', 800, 1500, 2000, '4-5 days', '3 days', '48h'),
+  ('Native Wear', 'Jalabia', '/clothes/jalabia.png', 500, 800, 1200, '3-4 days', '2 days', '24h'),
+  ('Native Wear', 'Senator Wears', '/clothes/senator-wear.png', 1000, 1500, 2000, '3-4 days', '2 days', '24h'),
+  ('Native Wear', 'Up and Down', '/clothes/senator-wear.png', 800, 1500, 1800, '3-4 days', '2 days', '24h'),
+  ('Native Wear', 'Native', '/clothes/senator-wear.png', 800, 1500, 1800, '3-4 days', '2 days', '24h'),
+  ('Native Wear', 'Cotton (Single)', '/clothes/buba-and-wrapper.png', 500, 700, 1000, '3-4 days', '2 days', '24h'),
+  ('Native Wear', 'Cotton (Double)', '/clothes/buba-and-wrapper.png', 800, 1000, 1500, '3-4 days', '2 days', '24h'),
+  ('Women''s', 'Gown', '/clothes/evening-gown.png', 400, 600, 1000, '3-4 days', '2 days', '24h'),
+  ('Women''s', 'Skirt and Blouse', '/clothes/skirt-and-blouse.png', 800, 1500, 2000, '3-4 days', '2 days', '24h'),
+  ('Women''s', 'Skirt', '/clothes/skirt-or-shorts.png', 400, 500, 1000, '2-3 days', '2 days', '24h'),
+  ('Bedding', 'Bedspread', '/clothes/bedspread.png', 800, 1200, 1800, '3-4 days', '2 days', '24h'),
+  ('Bedding', 'Duvet', '/clothes/duvet.png', 2000, 3000, 4500, '4-5 days', '3 days', '48h'),
+  ('Bedding', 'Pillow Case', '/clothes/pillow-case.png', 150, 200, 300, '2-3 days', '2 days', '24h'),
+  ('Household', 'Towel', '/clothes/towel.png', 600, 1000, 1800, '2-3 days', '2 days', '24h'),
+  ('Household', 'Small Center Rug', '/clothes/small-center-rug.png', 3000, 6000, null, '4-5 days', '3 days', null),
+  ('Household', 'Big Center Rug', '/clothes/big-center-rug.png', 5000, 10000, null, '4-5 days', '3 days', null),
+  ('Special Care', 'Wedding Gown', '/clothes/wedding-dress.png', null, 10000, 25000, null, '4 days', '72h'),
+  ('Special Care', 'Shoe', '/clothes/shoes.png', 1000, 1500, 3500, '3-4 days', '2 days', '24h'),
+  ('Special Care', 'Small Teddy Bear', '/clothes/small-teddy-bear.png', 1500, 2500, null, '3-4 days', '2 days', null),
+  ('Special Care', 'Big Teddy Bear', '/clothes/big-teddy-bear.png', 3500, 6000, null, '4-5 days', '3 days', null),
+  ('Accessories', 'Hat / Cap', '/clothes/cap.png', 300, 400, 600, '2-3 days', '2 days', '24h'),
+  ('Accessories', 'Scarf', '/clothes/ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'),
+  ('Accessories', 'Tie', '/clothes/ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'),
+  ('Accessories', 'Handkerchief', '/clothes/ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'),
+  ('Accessories', 'Stockings', '/clothes/ties-and-scarves.png', 200, 300, 400, '2-3 days', '2 days', '24h'),
+  ('Accessories', 'School Bags', '/clothes/school-bag.png', 1000, 2000, 2500, '3-4 days', '2 days', '24h'),
+  ('Accessories', 'Traveling Bags', '/clothes/travel-bag.png', 1500, 3000, 3500, '3-4 days', '2 days', '24h')
 ) as v(category_name, name, thumbnail_url, price_regular, price_white, price_express, time_regular, time_white, time_express)
 join clothing_categories c on c.name = v.category_name;
 

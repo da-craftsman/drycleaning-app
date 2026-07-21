@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     if (!confirmPasswordResetStatus.isSuccess) return
     const timer = setTimeout(() => {
-      navigate(profile?.role === 'admin' ? paths.admin : paths.account, { replace: true })
+      navigate(profile?.role === 'admin' || profile?.role === 'superadmin' ? paths.admin : paths.account, { replace: true })
     }, AUTO_REDIRECT_DELAY_MS)
     return () => clearTimeout(timer)
   }, [confirmPasswordResetStatus.isSuccess, profile, navigate])

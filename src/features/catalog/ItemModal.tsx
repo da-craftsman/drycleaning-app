@@ -5,23 +5,10 @@ import { SelectionCard } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatNaira } from '@/features/catalog/ItemCard'
+import { availableTiers, tierPrice, tierTime } from '@/features/catalog/tierPricing'
 import { useCartStore } from '@/store/useCartStore'
 import { useToast } from '@/hooks/use-toast'
 import type { ClothingItem, ServiceTier } from '@/types/database'
-
-const tiers: { tier: ServiceTier; label: string }[] = [
-  { tier: 'regular', label: 'Regular' },
-  { tier: 'white', label: 'White Wash' },
-  { tier: 'express', label: 'Express' },
-]
-
-function tierPrice(item: ClothingItem, tier: ServiceTier) {
-  return tier === 'regular' ? item.price_regular : tier === 'white' ? item.price_white : item.price_express
-}
-
-function tierTime(item: ClothingItem, tier: ServiceTier) {
-  return tier === 'regular' ? item.time_regular : tier === 'white' ? item.time_white : item.time_express
-}
 
 function ItemModal({
   item,
@@ -41,7 +28,7 @@ function ItemModal({
 
   useEffect(() => {
     if (item) {
-      setTier('regular')
+      setTier(availableTiers(item)[0]?.tier ?? 'regular')
       setQuantity(1)
       setDisplayItem(item)
     }
@@ -50,8 +37,12 @@ function ItemModal({
   if (!displayItem) return null
 
   const activeItem = displayItem
+  const tiers = availableTiers(activeItem)
 
   const handleAdd = () => {
+    const unitPrice = tierPrice(activeItem, tier)
+    const readyIn = tierTime(activeItem, tier)
+    if (unitPrice === null || readyIn === null) return
     addItem({
       itemId: activeItem.id,
       name: activeItem.name,
@@ -59,8 +50,8 @@ function ItemModal({
       categoryName,
       tier,
       quantity,
-      unitPrice: tierPrice(activeItem, tier),
-      readyIn: tierTime(activeItem, tier),
+      unitPrice,
+      readyIn,
     })
     toast({
       title: 'Added to cart',
@@ -88,7 +79,7 @@ function ItemModal({
                   <p className="text-label-md font-bold normal-case text-on-surface">{label}</p>
                   {t === 'express' && <Badge variant="urgent">Express</Badge>}
                 </div>
-                <p className="mt-1 text-body-md font-semibold text-on-surface">{formatNaira(tierPrice(activeItem, t))}</p>
+                <p className="mt-1 text-body-md font-semibold text-on-surface">{formatNaira(tierPrice(activeItem, t)!)}</p>
                 <p className="text-label-sm text-on-surface-variant">Ready in {tierTime(activeItem, t)}</p>
               </SelectionCard>
             ))}
@@ -118,7 +109,7 @@ function ItemModal({
           </div>
 
           <Button variant={tier === 'express' ? 'express' : 'primary'} size="lg" onClick={handleAdd} className="w-full">
-            Add to Order ({formatNaira(tierPrice(activeItem, tier) * quantity)})
+            Add to Order ({formatNaira((tierPrice(activeItem, tier) ?? 0) * quantity)})
           </Button>
         </div>
       }
