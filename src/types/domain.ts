@@ -1,4 +1,4 @@
-import type { LogisticsType, PaymentMethod, Profile, ServiceTier, TicketCategory, TicketPriority } from '@/types/database'
+import type { LogisticsType, Order, PaymentMethod, Profile, ServiceTier, TicketCategory, TicketPriority } from '@/types/database'
 
 export interface CartItem {
   cartItemId: string
@@ -45,6 +45,11 @@ export interface CreateOrderInput {
   details: CheckoutDetails
   imageDataUrls: string[]
   paymentMethod: PaymentMethod
+}
+
+/** Admin orders list rollup — adds a derived flag for orders mixing Express with Regular/White items, computed from order_items. */
+export interface AdminOrderSummary extends Order {
+  hasMixedExpress: boolean
 }
 
 /** Per-customer rollup for the admin Customers list — orders/spend computed from their order history, not stored directly. */

@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { generateOrderDisplayId } from '@/lib/utils'
+import { isMixedExpress } from '@/lib/orderTiers'
 import {
   createOrderMock,
   getAllOrdersMock,
@@ -13,8 +14,8 @@ import {
   updateOrderStatusMock,
   verifyPaystackPaymentMock,
 } from '@/lib/data/mock/orders.mock'
-import type { Order, OrderItem, OrderStatus, OrderStatusHistoryEntry } from '@/types/database'
-import type { CreateOrderInput } from '@/types/domain'
+import type { Order, OrderItem, OrderStatus, OrderStatusHistoryEntry, ServiceTier } from '@/types/database'
+import type { AdminOrderSummary, CreateOrderInput } from '@/types/domain'
 
 export async function getOrdersForUser(userId: string): Promise<Order[]> {
   if (!isSupabaseConfigured) return getOrdersForUserMock(userId)
@@ -27,11 +28,18 @@ export async function getOrdersForUser(userId: string): Promise<Order[]> {
   return data
 }
 
-export async function getAllOrders(): Promise<Order[]> {
+/** For the admin orders list — adds `hasMixedExpress`, derived from each order's own order_items, in one bulk query rather than one-per-order. */
+export async function getAllOrders(): Promise<AdminOrderSummary[]> {
   if (!isSupabaseConfigured) return getAllOrdersMock()
-  const { data, error } = await supabase!.from('orders').select('*').order('created_at', { ascending: false })
+  const { data, error } = await supabase!
+    .from('orders')
+    .select('*, order_items(service_tier)')
+    .order('created_at', { ascending: false })
   if (error) throw error
-  return data
+  return (data as (Order & { order_items: { service_tier: ServiceTier }[] })[]).map(({ order_items, ...order }) => ({
+    ...order,
+    hasMixedExpress: isMixedExpress(order_items.map((oi) => oi.service_tier)),
+  }))
 }
 
 export async function getOrder(orderId: string): Promise<Order | null> {

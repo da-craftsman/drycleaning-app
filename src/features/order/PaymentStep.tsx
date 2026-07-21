@@ -1,10 +1,14 @@
 import { useState } from 'react'
-import { CreditCard, Wallet, Sparkles } from 'lucide-react'
+import { CreditCard, Wallet, Info, TriangleAlert } from 'lucide-react'
 import { SelectionCard } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { useCartStore } from '@/store/useCartStore'
 import { useCheckoutStore } from '@/store/useCheckoutStore'
 import { formatNaira } from '@/features/catalog/ItemCard'
 import { verifyPaystackPayment } from '@/lib/data/orders'
+import { isMixedExpress } from '@/lib/orderTiers'
 import { getErrorMessage } from '@/lib/utils'
 import type { Order, PaymentMethod } from '@/types/database'
 
@@ -29,7 +33,13 @@ function PaymentStep({
 }) {
   const paymentMethod = useCheckoutStore((s) => s.paymentMethod)
   const setPaymentMethod = useCheckoutStore((s) => s.setPaymentMethod)
+  const logisticsType = useCheckoutStore((s) => s.logisticsType)
+  const cartItems = useCartStore((s) => s.items)
   const [paystackError, setPaystackError] = useState<string | null>(null)
+  const [mixedExpressAcknowledged, setMixedExpressAcknowledged] = useState(false)
+
+  const hasHomeDelivery = logisticsType === 'delivery_only' || logisticsType === 'pickup_and_delivery'
+  const showMixedExpressNotice = hasHomeDelivery && isMixedExpress(cartItems.map((i) => i.tier))
 
   const handlePaystack = async () => {
     setPaystackError(null)
@@ -110,16 +120,39 @@ function PaymentStep({
 
       {paymentMethod === 'paystack' && !paystackKey && (
         <p className="flex items-center gap-1.5 text-label-sm text-on-surface-variant">
-          <Sparkles className="h-3.5 w-3.5" />
+          <Info className="h-3.5 w-3.5" />
           No live Paystack key configured. This will simulate a successful payment.
         </p>
+      )}
+
+      {showMixedExpressNotice && (
+        <div className="flex flex-col gap-stack-sm rounded-lg border border-urgent-express/30 bg-urgent-express/5 p-stack-sm">
+          <div className="flex gap-2">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-urgent-express" />
+            <p className="text-body-md text-on-surface">
+              This order mixes Express items with Regular or White Wash items. Your delivery fee only covers bringing the Express
+              items back to you. The rest will be delivered separately once ready, and you'll pay our rider directly at that time.
+            </p>
+          </div>
+          <div className="flex items-start gap-2 pl-6">
+            <Checkbox
+              id="mixed-express-ack"
+              checked={mixedExpressAcknowledged}
+              onCheckedChange={(v) => setMixedExpressAcknowledged(v === true)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="mixed-express-ack" className="normal-case text-body-md text-on-surface">
+              I understand and agree to this arrangement.
+            </Label>
+          </div>
+        </div>
       )}
 
       {paymentMethod && (
         <Button
           variant={paymentMethod === 'paystack' ? 'express' : 'primary'}
           size="lg"
-          disabled={submitting}
+          disabled={submitting || (showMixedExpressNotice && !mixedExpressAcknowledged)}
           onClick={paymentMethod === 'paystack' ? handlePaystack : onCashOnDelivery}
           className="w-full"
         >

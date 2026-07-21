@@ -16,14 +16,45 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCartStore } from '@/store/useCartStore'
 import { MobileMenu } from '@/components/navigation/MobileMenu'
 import { NotificationBell } from '@/components/navigation/NotificationBell'
+import { services } from '@/lib/services'
 
 const navLinks = [
-  { to: paths.home, label: 'Home', end: true },
-  { to: paths.services, label: 'Services', end: false },
   { to: paths.blog, label: 'Blog', end: false },
   { to: paths.about, label: 'About', end: false },
   { to: paths.support, label: 'Support', end: false },
 ]
+
+/** Services nav item with a hover/focus dropdown listing every individual service, alongside its own link to the Services overview. */
+function ServicesNavItem() {
+  return (
+    <div className="group relative">
+      <NavLink
+        to={paths.services}
+        className={({ isActive }) =>
+          cn(
+            'border-b-2 border-transparent px-0.5 pb-1.5 pt-1 text-label-md text-on-surface-variant transition-colors hover:text-on-surface hover:border-outline-variant',
+            isActive && 'border-primary text-primary hover:border-primary',
+          )
+        }
+      >
+        Services
+      </NavLink>
+      <div className="invisible absolute left-1/2 top-full z-40 w-56 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+        <div className="overflow-hidden rounded border border-outline-variant/40 bg-surface-container-lowest p-1 shadow-soft-lift">
+          {services.map((s) => (
+            <Link
+              key={s.slug}
+              to={paths.serviceDetail(s.slug)}
+              className="block rounded-sm px-3 py-2 text-body-md text-on-surface transition-colors hover:bg-surface-container-low"
+            >
+              {s.title}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /** Top nav — a floating rounded pill bar fixed over page content on desktop; a slim hamburger+logo+bell bar on mobile (bottom nav covers primary nav there). */
 function Header() {
@@ -47,6 +78,19 @@ function Header() {
         </div>
 
         <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
+          <NavLink
+            to={paths.home}
+            end
+            className={({ isActive }) =>
+              cn(
+                'border-b-2 border-transparent px-0.5 pb-1.5 pt-1 text-label-md text-on-surface-variant transition-colors hover:text-on-surface hover:border-outline-variant',
+                isActive && 'border-primary text-primary hover:border-primary',
+              )
+            }
+          >
+            Home
+          </NavLink>
+          <ServicesNavItem />
           {navLinks.map(({ to, label, end }) => (
             <NavLink
               key={to}

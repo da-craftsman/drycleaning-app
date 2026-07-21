@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ChevronLeft, Phone, MessageCircle } from 'lucide-react'
+import { ChevronLeft, Phone, MessageCircle, Zap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Label } from '@/components/ui/label'
@@ -16,6 +16,7 @@ import { formatNaira } from '@/features/catalog/ItemCard'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { useOrder, useOrderItems, useOrderStatusHistory } from '@/lib/queries/useOrders'
+import { isMixedExpress } from '@/lib/orderTiers'
 import { useUpdateOrderStatus, useMarkOrderPaid } from '@/lib/queries/useCreateOrder'
 import { useProfile } from '@/lib/queries/useProfile'
 import { useMarkNotificationsReadForOrder } from '@/lib/queries/useNotifications'
@@ -242,8 +243,20 @@ export default function AdminOrderDetailPage() {
 
       <div className="flex items-center justify-between">
         <h1 className="text-headline-md font-display text-on-surface">{order.display_id}</h1>
-        <OrderStatusBadge status={order.status} />
+        <div className="flex items-center gap-2">
+          {items && isMixedExpress(items.map((i) => i.service_tier)) && (
+            <Badge variant="urgent">
+              <Zap className="h-3 w-3" /> Mixed Express
+            </Badge>
+          )}
+          <OrderStatusBadge status={order.status} />
+        </div>
       </div>
+      {items && isMixedExpress(items.map((i) => i.service_tier)) && (
+        <p className="-mt-stack-sm text-label-sm text-on-surface-variant">
+          This order mixes Express items with Regular or White Wash items. Prioritize the Express items separately from the rest.
+        </p>
+      )}
 
       {/* Mobile: tracking competes with the management card for vertical space, so it's tucked behind a tab instead of always shown. Customer Details stays outside the tabs, always visible. */}
       <div className="flex flex-col gap-stack-md md:hidden">

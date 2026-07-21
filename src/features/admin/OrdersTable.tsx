@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Phone, MessageCircle } from 'lucide-react'
+import { Phone, MessageCircle, Zap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { OrderStatusBadge, orderStatusLabels } from '@/features/dashboard/OrderStatusBadge'
 import { formatNaira } from '@/features/catalog/ItemCard'
@@ -12,7 +13,7 @@ import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
 import type { Order, OrderStatus } from '@/types/database'
 
-function OrdersTable({ orders, isLoading }: { orders?: Order[]; isLoading: boolean }) {
+function OrdersTable({ orders, isLoading }: { orders?: (Order & { hasMixedExpress?: boolean })[]; isLoading: boolean }) {
   const updateStatus = useUpdateOrderStatus()
   const { toast } = useToast()
 
@@ -43,6 +44,11 @@ function OrdersTable({ orders, isLoading }: { orders?: Order[]; isLoading: boole
                 {new Date(order.created_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })} · {order.phone}
               </p>
               <p className="text-label-md font-bold text-on-surface">{formatNaira(order.total)}</p>
+              {order.hasMixedExpress && (
+                <Badge variant="urgent" className="w-fit">
+                  <Zap className="h-3 w-3" /> Mixed Express
+                </Badge>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">

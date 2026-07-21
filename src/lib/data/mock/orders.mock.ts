@@ -1,8 +1,9 @@
 import { db, delay, persist } from '@/lib/data/mock/store'
 import { notifyAdminsNewOrderMock, notifyCustomerOrderStatusMock } from '@/lib/data/mock/notifications.mock'
 import { generateOrderDisplayId } from '@/lib/utils'
+import { isMixedExpress } from '@/lib/orderTiers'
 import type { Order, OrderItem, OrderStatus, OrderStatusHistoryEntry } from '@/types/database'
-import type { CreateOrderInput } from '@/types/domain'
+import type { AdminOrderSummary, CreateOrderInput } from '@/types/domain'
 
 export function getOrdersForUserMock(userId: string): Promise<Order[]> {
   return delay(
@@ -10,8 +11,15 @@ export function getOrdersForUserMock(userId: string): Promise<Order[]> {
   )
 }
 
-export function getAllOrdersMock(): Promise<Order[]> {
-  return delay([...db.orders].sort((a, b) => b.created_at.localeCompare(a.created_at)))
+export function getAllOrdersMock(): Promise<AdminOrderSummary[]> {
+  return delay(
+    [...db.orders]
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map((order) => ({
+        ...order,
+        hasMixedExpress: isMixedExpress(db.orderItems.filter((oi) => oi.order_id === order.id).map((oi) => oi.service_tier)),
+      })),
+  )
 }
 
 export function getOrderMock(orderId: string): Promise<Order | null> {

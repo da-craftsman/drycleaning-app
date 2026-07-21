@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Package } from 'lucide-react'
+import { Package, Zap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 import { OrderStatusBadge } from '@/features/dashboard/OrderStatusBadge'
 import { formatNaira } from '@/features/catalog/ItemCard'
 import { paths } from '@/routes/paths'
@@ -13,7 +14,7 @@ function OrdersList({
   emptyLabel = 'No orders yet.',
   linkTo = paths.accountOrder,
 }: {
-  orders?: Order[]
+  orders?: (Order & { hasMixedExpress?: boolean })[]
   isLoading: boolean
   emptyLabel?: string
   /** Defaults to the customer account order route — pass paths.adminOrder when rendering inside admin. */
@@ -51,7 +52,14 @@ function OrdersList({
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <OrderStatusBadge status={order.status} />
+                <div className="flex items-center gap-1.5">
+                  {order.hasMixedExpress && (
+                    <Badge variant="urgent">
+                      <Zap className="h-3 w-3" /> Mixed Express
+                    </Badge>
+                  )}
+                  <OrderStatusBadge status={order.status} />
+                </div>
                 <p className="text-label-md font-bold text-on-surface">{formatNaira(order.total)}</p>
               </div>
             </CardContent>
