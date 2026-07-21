@@ -30,8 +30,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: '/offline.html',
-        navigateFallbackDenylist: [/^\/admin/, /^\/account/],
+        navigateFallback: '/index.html',
       },
       devOptions: {
         enabled: false,
