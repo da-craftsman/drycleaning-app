@@ -116,12 +116,15 @@ export default function HomePage() {
             </Link>
           </Button>
 
-          <div className="mt-8 hidden items-center gap-8 md:flex">
+          <div className="mt-8 flex min-w-0 items-center gap-3 md:gap-8">
             {heroStats.map((stat, i) => (
-              <div key={stat.label} className={cn('flex items-center gap-8', i > 0 && 'border-l border-clean-white/20 pl-8')}>
-                <div>
-                  <p className="font-display text-headline-md text-clean-white">{stat.value}</p>
-                  <p className="text-label-sm text-clean-white/70">{stat.label}</p>
+              <div
+                key={stat.label}
+                className={cn('flex min-w-0 items-center gap-3 md:gap-8', i > 0 && 'border-l border-clean-white/20 pl-3 md:pl-8')}
+              >
+                <div className="min-w-0">
+                  <p className="font-display text-label-md text-clean-white md:text-headline-md">{stat.value}</p>
+                  <p className="whitespace-nowrap text-[10px] leading-tight text-clean-white/70 md:text-label-sm">{stat.label}</p>
                 </div>
               </div>
             ))}
