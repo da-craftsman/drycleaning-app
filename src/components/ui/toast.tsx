@@ -11,7 +11,7 @@ function ToastViewport({ className, ...props }: React.ComponentProps<typeof Toas
   return (
     <ToastPrimitive.Viewport
       className={cn(
-        'fixed bottom-0 z-[100] flex max-h-screen w-full flex-col-reverse gap-2 p-stack-md sm:bottom-4 sm:right-4 sm:w-96 md:mb-16 mb-20',
+        'fixed top-0 z-[100] flex max-h-screen w-full flex-col gap-2 p-stack-md pt-20 sm:top-auto sm:bottom-4 sm:right-4 sm:w-96 sm:flex-col-reverse sm:pt-stack-md',
         className,
       )}
       {...props}
