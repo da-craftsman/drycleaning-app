@@ -27,6 +27,8 @@ export async function createSubAdmin(input: {
   password: string
   role: 'admin' | 'superadmin'
   permissions: AdminPermission[]
+  notifyNewOrders: boolean
+  notifyNewTickets: boolean
 }): Promise<Profile> {
   if (!isSupabaseConfigured) return createSubAdminMock(input)
   const { data, error } = await supabase!.functions.invoke('create-admin-user', { body: input })
@@ -36,7 +38,15 @@ export async function createSubAdmin(input: {
 
 export async function updateAdminUser(
   userId: string,
-  patch: { role?: UserRole; permissions?: AdminPermission[]; fullName?: string; phone?: string; whatsapp?: string | null },
+  patch: {
+    role?: UserRole
+    permissions?: AdminPermission[]
+    fullName?: string
+    phone?: string
+    whatsapp?: string | null
+    notifyNewOrders?: boolean
+    notifyNewTickets?: boolean
+  },
 ): Promise<Profile> {
   if (!isSupabaseConfigured) return updateAdminUserMock(userId, patch)
   const { data, error } = await supabase!
@@ -47,6 +57,8 @@ export async function updateAdminUser(
       ...(patch.fullName !== undefined && { full_name: patch.fullName }),
       ...(patch.phone !== undefined && { phone: patch.phone }),
       ...(patch.whatsapp !== undefined && { whatsapp: patch.whatsapp }),
+      ...(patch.notifyNewOrders !== undefined && { notify_new_orders: patch.notifyNewOrders }),
+      ...(patch.notifyNewTickets !== undefined && { notify_new_tickets: patch.notifyNewTickets }),
     })
     .eq('id', userId)
     .select()

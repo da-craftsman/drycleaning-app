@@ -40,6 +40,9 @@ export interface Profile {
   email: string
   email_verified_at: string | null
   permissions: AdminPermission[]
+  /** Whether this staff account receives new-order / new-support-ticket notifications. Meaningless for role='customer'. */
+  notify_new_orders: boolean
+  notify_new_tickets: boolean
   created_at: string
 }
 

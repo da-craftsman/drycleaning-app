@@ -154,6 +154,8 @@ export const profiles: Profile[] = [
     email: 'admin@shalahrexlaundry.com',
     email_verified_at: '2025-11-01T09:00:00.000Z',
     permissions: [],
+    notify_new_orders: true,
+    notify_new_tickets: true,
     created_at: '2025-11-01T09:00:00.000Z',
   },
   {
@@ -166,6 +168,8 @@ export const profiles: Profile[] = [
     email: 'demo@shalahrexlaundry.com',
     email_verified_at: '2025-12-10T14:30:00.000Z',
     permissions: [],
+    notify_new_orders: true,
+    notify_new_tickets: true,
     created_at: '2025-12-10T14:30:00.000Z',
   },
 ]

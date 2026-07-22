@@ -50,6 +50,8 @@ export async function signUpMock(input: {
     email: input.email.trim().toLowerCase(),
     email_verified_at: null,
     permissions: [],
+    notify_new_orders: true,
+    notify_new_tickets: true,
     created_at: new Date().toISOString(),
   }
   db.profiles.push(profile)

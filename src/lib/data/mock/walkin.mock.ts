@@ -26,6 +26,8 @@ export async function createWalkInCustomerMock(input: {
     email: resolvedEmail,
     email_verified_at: new Date().toISOString(),
     permissions: [],
+    notify_new_orders: true,
+    notify_new_tickets: true,
     created_at: new Date().toISOString(),
   }
   db.profiles.push(profile)

@@ -16,6 +16,8 @@ export async function createSubAdminMock(input: {
   password: string
   role: 'admin' | 'superadmin'
   permissions: AdminPermission[]
+  notifyNewOrders: boolean
+  notifyNewTickets: boolean
 }): Promise<Profile> {
   await delay(null, 500)
   if (db.profiles.some((p) => p.email.toLowerCase() === input.email.trim().toLowerCase())) {
@@ -31,6 +33,8 @@ export async function createSubAdminMock(input: {
     email: input.email.trim().toLowerCase(),
     email_verified_at: new Date().toISOString(),
     permissions: input.role === 'superadmin' ? [] : input.permissions,
+    notify_new_orders: input.notifyNewOrders,
+    notify_new_tickets: input.notifyNewTickets,
     created_at: new Date().toISOString(),
   }
   db.profiles.push(profile)
@@ -41,7 +45,15 @@ export async function createSubAdminMock(input: {
 
 export async function updateAdminUserMock(
   userId: string,
-  patch: { role?: UserRole; permissions?: AdminPermission[]; fullName?: string; phone?: string; whatsapp?: string | null },
+  patch: {
+    role?: UserRole
+    permissions?: AdminPermission[]
+    fullName?: string
+    phone?: string
+    whatsapp?: string | null
+    notifyNewOrders?: boolean
+    notifyNewTickets?: boolean
+  },
 ): Promise<Profile> {
   await delay(null, 400)
   const profile = db.profiles.find((p) => p.id === userId)
@@ -51,6 +63,8 @@ export async function updateAdminUserMock(
   if (patch.fullName !== undefined) profile.full_name = patch.fullName
   if (patch.phone !== undefined) profile.phone = patch.phone
   if (patch.whatsapp !== undefined) profile.whatsapp = patch.whatsapp
+  if (patch.notifyNewOrders !== undefined) profile.notify_new_orders = patch.notifyNewOrders
+  if (patch.notifyNewTickets !== undefined) profile.notify_new_tickets = patch.notifyNewTickets
   persist()
   return profile
 }
