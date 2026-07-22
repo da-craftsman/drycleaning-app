@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
+import DOMPurify from 'dompurify'
 import { ChevronLeft, Newspaper, Shirt } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -49,11 +50,27 @@ export default function BlogPostPage() {
         {post.published_at && new Date(post.published_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
       </p>
 
-      <div className="mt-stack-md flex flex-col gap-stack-md text-body-lg text-on-surface">
-        {post.content.split('\n\n').map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
-        ))}
-      </div>
+      {/* Posts written with the rich text editor are stored as HTML; older posts written before it
+          existed are plain text with blank-line-separated paragraphs — detected and rendered accordingly. */}
+      {/<[a-z][\s\S]*>/i.test(post.content) ? (
+        <div
+          className={[
+            'mt-stack-md flex flex-col gap-stack-md text-body-lg text-on-surface',
+            '[&_h2]:font-display [&_h2]:text-headline-md [&_h2]:text-on-surface',
+            '[&_h3]:font-display [&_h3]:text-body-lg [&_h3]:font-bold [&_h3]:text-on-surface',
+            '[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1',
+            '[&_blockquote]:border-l-4 [&_blockquote]:border-outline-variant [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-on-surface-variant',
+            '[&_a]:text-primary [&_a]:underline [&_strong]:font-bold',
+          ].join(' ')}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+        />
+      ) : (
+        <div className="mt-stack-md flex flex-col gap-stack-md text-body-lg text-on-surface">
+          {post.content.split('\n\n').map((paragraph, i) => (
+            <p key={i}>{paragraph}</p>
+          ))}
+        </div>
+      )}
 
       <Card className="mt-stack-lg bg-primary/5">
         <CardContent className="flex flex-col items-center gap-stack-sm py-stack-lg text-center">

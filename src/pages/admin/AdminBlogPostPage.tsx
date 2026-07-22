@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft, ImagePlus, X } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input, Textarea } from '@/components/ui/input'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
@@ -171,12 +172,9 @@ export default function AdminBlogPostPage() {
 
       <div>
         <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          className="mt-1 min-h-40"
-          value={form.content}
-          onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-        />
+        <div className="mt-1">
+          <RichTextEditor value={form.content} onChange={(html) => setForm((f) => ({ ...f, content: html }))} />
+        </div>
       </div>
 
       <div>
