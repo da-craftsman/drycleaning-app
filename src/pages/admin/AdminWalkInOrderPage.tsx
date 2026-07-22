@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Store, PackageCheck, ShoppingBasket, UserPlus, Users } from 'lucide-react'
+import { Search, Store, PackageCheck, ShoppingBasket, UserPlus, Users, MapPin } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SelectionCard } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import { formatNaira } from '@/features/catalog/ItemCard'
 import { useCategories } from '@/lib/queries/useCategories'
 import { useClothingItems } from '@/lib/queries/useClothingItems'
 import { useAllCustomers } from '@/lib/queries/useCustomers'
+import { useOrdersForUser } from '@/lib/queries/useOrders'
 import { useDeliveryZones } from '@/lib/queries/useDeliveryZones'
 import { useCreateWalkInCustomer } from '@/lib/queries/useWalkIn'
 import { useCreateOrder, useMarkOrderPaid } from '@/lib/queries/useCreateOrder'
@@ -75,6 +76,23 @@ export default function AdminWalkInOrderPage() {
   const [markPaidNow, setMarkPaidNow] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
+
+  const { data: selectedCustomerOrders } = useOrdersForUser(selectedCustomer?.profile.id)
+
+  // Most recent distinct addresses this customer has used before, newest first — saves staff from
+  // retyping an address a returning walk-in customer has already given.
+  const recentAddresses = useMemo(() => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const order of selectedCustomerOrders ?? []) {
+      const addr = order.address.trim()
+      if (!addr || seen.has(addr)) continue
+      seen.add(addr)
+      result.push(addr)
+      if (result.length === 3) break
+    }
+    return result
+  }, [selectedCustomerOrders])
 
   const categoryName = categories?.find((c) => c.id === selectedItem?.category_id)?.name ?? ''
 
@@ -380,6 +398,21 @@ export default function AdminWalkInOrderPage() {
                     error={address.trim().length > 0 && address.trim().length < 8}
                   />
                   <FieldError>{address.trim().length > 0 && address.trim().length < 8 ? 'Enter a full address.' : undefined}</FieldError>
+                  {recentAddresses.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {recentAddresses.map((addr) => (
+                        <button
+                          key={addr}
+                          type="button"
+                          onClick={() => setAddress(addr)}
+                          className="flex max-w-full items-center gap-1.5 rounded-full border border-outline-variant/40 px-3 py-1.5 text-label-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
+                        >
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{addr}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </>
             )}

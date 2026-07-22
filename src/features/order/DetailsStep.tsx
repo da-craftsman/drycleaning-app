@@ -1,12 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { MapPin } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input, Textarea, FieldError } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PhotoUpload } from '@/features/order/PhotoUpload'
 import { useCheckoutStore } from '@/store/useCheckoutStore'
+import { useSession } from '@/lib/queries/useSession'
+import { useOrdersForUser } from '@/lib/queries/useOrders'
 
 const detailsSchema = z
   .object({
@@ -29,10 +32,29 @@ function DetailsStep({ onValidChange }: { onValidChange: (valid: boolean, values
   const addImage = useCheckoutStore((s) => s.addImage)
   const removeImage = useCheckoutStore((s) => s.removeImage)
 
+  const { data: session } = useSession()
+  const { data: pastOrders } = useOrdersForUser(session?.id)
+
+  // Most recent distinct delivery/pickup addresses this customer has used, newest first — lets
+  // them tap one instead of retyping the same address every order.
+  const recentAddresses = useMemo(() => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const order of pastOrders ?? []) {
+      const address = order.address.trim()
+      if (!address || seen.has(address)) continue
+      seen.add(address)
+      result.push(address)
+      if (result.length === 3) break
+    }
+    return result
+  }, [pastOrders])
+
   const {
     register,
     watch,
     control,
+    setValue,
     formState: { errors, isValid },
   } = useForm<DetailsFormValues>({
     resolver: zodResolver(detailsSchema),
@@ -71,6 +93,21 @@ function DetailsStep({ onValidChange }: { onValidChange: (valid: boolean, values
           {...register('address')}
         />
         <FieldError>{errors.address?.message}</FieldError>
+        {recentAddresses.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {recentAddresses.map((address) => (
+              <button
+                key={address}
+                type="button"
+                onClick={() => setValue('address', address, { shouldValidate: true, shouldDirty: true })}
+                className="flex max-w-full items-center gap-1.5 rounded-full border border-outline-variant/40 px-3 py-1.5 text-label-sm text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
+              >
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{address}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
