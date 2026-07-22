@@ -3,6 +3,7 @@ import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   ClipboardList,
+  History,
   Users,
   Tags,
   MapPin,
@@ -39,6 +40,7 @@ const sidebarLinks: {
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: paths.adminWalkIn, label: 'Walk-in Order', icon: Plus, end: false, permission: 'walkin' },
   { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order', permission: 'orders' },
+  { to: paths.adminOrderHistory, label: 'Order History', icon: History, end: false, permission: 'orders' },
   { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false, permission: 'customers' },
   { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false, permission: 'catalog' },
   { to: paths.adminZones, label: 'Zones', icon: MapPin, end: false, permission: 'zones' },

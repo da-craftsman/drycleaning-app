@@ -31,6 +31,7 @@ import AccountOrderDetailPage from '@/pages/account/AccountOrderDetailPage'
 import AccountTicketsPage from '@/pages/account/AccountTicketsPage'
 import AccountTicketDetailPage from '@/pages/account/AccountTicketDetailPage'
 import AccountProfilePage from '@/pages/account/AccountProfilePage'
+import AccountHistoryPage from '@/pages/account/AccountHistoryPage'
 
 // Auth and Admin are natural code-split boundaries — most visitors never touch either,
 // and Admin pulls in jsPDF (receipt/invoice generation), so keep both out of the main bundle.
@@ -42,6 +43,7 @@ const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'))
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
 const AdminOrdersPage = lazy(() => import('@/pages/admin/AdminOrdersPage'))
 const AdminOrderDetailPage = lazy(() => import('@/pages/admin/AdminOrderDetailPage'))
+const AdminOrderHistoryPage = lazy(() => import('@/pages/admin/AdminOrderHistoryPage'))
 const AdminCustomersPage = lazy(() => import('@/pages/admin/AdminCustomersPage'))
 const AdminCustomerDetailPage = lazy(() => import('@/pages/admin/AdminCustomerDetailPage'))
 const AdminCatalogPage = lazy(() => import('@/pages/admin/AdminCatalogPage'))
@@ -116,6 +118,7 @@ function App() {
           <Route path={paths.accountTickets} element={<AccountTicketsPage />} />
           <Route path="/account/tickets/:id" element={<AccountTicketDetailPage />} />
           <Route path={paths.accountProfile} element={<AccountProfilePage />} />
+          <Route path={paths.accountHistory} element={<AccountHistoryPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
@@ -138,6 +141,7 @@ function App() {
           <Route element={<RequirePermission feature="orders" />}>
             <Route path={paths.adminOrders} element={<AdminOrdersPage />} />
             <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
+            <Route path={paths.adminOrderHistory} element={<AdminOrderHistoryPage />} />
           </Route>
           <Route element={<RequirePermission feature="customers" />}>
             <Route path={paths.adminCustomers} element={<AdminCustomersPage />} />

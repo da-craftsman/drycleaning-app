@@ -1,9 +1,11 @@
 import { useQueries } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
+import { Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatNaira } from '@/features/catalog/ItemCard'
 import { getOrderItems } from '@/lib/data/orders'
 import { queryKeys } from '@/lib/queries/keys'
+import { paths } from '@/routes/paths'
 import type { Order } from '@/types/database'
 
 function AnalyticsCards({ orders, isLoading }: { orders?: Order[]; isLoading: boolean }) {
@@ -15,7 +17,6 @@ function AnalyticsCards({ orders, isLoading }: { orders?: Order[]; isLoading: bo
     })),
   })
 
-  const totalSpent = orders?.reduce((sum, o) => sum + o.total, 0) ?? 0
   const totalOrders = orders?.length ?? 0
 
   const itemCounts = new Map<string, number>()
@@ -24,7 +25,7 @@ function AnalyticsCards({ orders, isLoading }: { orders?: Order[]; isLoading: bo
       itemCounts.set(line.item_name, (itemCounts.get(line.item_name) ?? 0) + line.quantity)
     })
   })
-  const favorite = [...itemCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
+  const mostCleaned = [...itemCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
 
   if (isLoading) {
     return (
@@ -37,9 +38,8 @@ function AnalyticsCards({ orders, isLoading }: { orders?: Order[]; isLoading: bo
   }
 
   const stats = [
-    { label: 'Total Spent', value: formatNaira(totalSpent) },
     { label: 'Total Orders', value: String(totalOrders) },
-    { label: 'Favorite Item', value: favorite ?? 'N/A' },
+    { label: 'Most Cleaned Item', value: mostCleaned ?? 'N/A' },
   ]
 
   return (
@@ -52,6 +52,15 @@ function AnalyticsCards({ orders, isLoading }: { orders?: Order[]; isLoading: bo
           </CardContent>
         </Card>
       ))}
+      <Link to={paths.accountHistory}>
+        <Card className="h-full transition-shadow hover:shadow-soft-lift">
+          <CardContent className="flex h-full flex-col justify-center gap-2 pt-stack-md">
+            <Clock className="h-5 w-5 text-primary" />
+            <p className="text-label-sm uppercase text-on-surface-variant">History</p>
+            <p className="text-label-md font-bold normal-case text-on-surface">View past orders by month</p>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   )
 }

@@ -25,11 +25,13 @@ export const paths = {
   accountTickets: '/account/tickets',
   accountTicket: (id: string) => `/account/tickets/${id}`,
   accountProfile: '/account/profile',
+  accountHistory: '/account/history',
   verifyEmail: '/account/verify-email',
 
   admin: '/admin',
   adminOrders: '/admin/orders',
   adminOrder: (id: string) => `/admin/orders/${id}`,
+  adminOrderHistory: '/admin/order-history',
   adminCustomers: '/admin/customers',
   adminCustomer: (id: string) => `/admin/customers/${id}`,
   adminCatalog: '/admin/catalog',
