@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { OrdersTable } from '@/features/admin/OrdersTable'
+import { CompactOrdersList } from '@/features/dashboard/CompactOrdersList'
 import { useAllOrders } from '@/lib/queries/useOrders'
 import { groupOrdersByYearMonth } from '@/lib/orderHistory'
+import { paths } from '@/routes/paths'
 
 export default function AdminOrderHistoryPage() {
   const { data: orders, isLoading } = useAllOrders()
@@ -48,7 +49,7 @@ export default function AdminOrderHistoryPage() {
                 {months.map(({ month, monthLabel, orders: monthOrders }) => (
                   <div key={month}>
                     <h3 className="mb-stack-sm text-label-md font-bold uppercase text-on-surface-variant">{monthLabel}</h3>
-                    <OrdersTable orders={monthOrders} isLoading={false} />
+                    <CompactOrdersList orders={monthOrders} linkTo={paths.adminOrder} />
                   </div>
                 ))}
               </div>

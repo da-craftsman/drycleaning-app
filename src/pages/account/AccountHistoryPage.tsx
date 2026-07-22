@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { OrdersList } from '@/features/dashboard/OrdersList'
+import { CompactOrdersList } from '@/features/dashboard/CompactOrdersList'
 import { useAuth } from '@/hooks/useAuth'
 import { useOrdersForUser } from '@/lib/queries/useOrders'
 import { groupOrdersByYearMonth } from '@/lib/orderHistory'
@@ -32,7 +32,7 @@ export default function AccountHistoryPage() {
                 {months.map(({ month, monthLabel, orders: monthOrders }) => (
                   <div key={month}>
                     <h3 className="mb-stack-sm text-label-md font-bold uppercase text-on-surface-variant">{monthLabel}</h3>
-                    <OrdersList orders={monthOrders} isLoading={false} />
+                    <CompactOrdersList orders={monthOrders} />
                   </div>
                 ))}
               </div>
