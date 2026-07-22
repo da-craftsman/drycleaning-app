@@ -11,6 +11,7 @@ import {
   Newspaper,
   Settings,
   ShieldCheck,
+  Bell,
   LogOut,
   Plus,
 } from 'lucide-react'
@@ -45,6 +46,7 @@ const sidebarLinks: {
   { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket', permission: 'tickets' },
   { to: paths.adminBlog, label: 'Blog', icon: Newspaper, end: false, permission: 'blog' },
   { to: paths.adminAdmins, label: 'Admins', icon: ShieldCheck, end: false, superAdminOnly: true },
+  { to: paths.adminNotifications, label: 'Manage Notifications', icon: Bell, end: false, superAdminOnly: true },
   { to: paths.adminSettings, label: 'Settings', icon: Settings, end: false },
 ]
 

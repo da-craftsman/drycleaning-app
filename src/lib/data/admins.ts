@@ -27,8 +27,6 @@ export async function createSubAdmin(input: {
   password: string
   role: 'admin' | 'superadmin'
   permissions: AdminPermission[]
-  notifyNewOrders: boolean
-  notifyNewTickets: boolean
 }): Promise<Profile> {
   if (!isSupabaseConfigured) return createSubAdminMock(input)
   const { data, error } = await supabase!.functions.invoke('create-admin-user', { body: input })

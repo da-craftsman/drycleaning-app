@@ -25,8 +25,6 @@ function AdminUserForm({ existing, onDone }: { existing?: Profile; onDone: () =>
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<'admin' | 'superadmin'>(existing?.role === 'superadmin' ? 'superadmin' : 'admin')
   const [permissions, setPermissions] = useState<AdminPermission[]>(existing?.permissions ?? [])
-  const [notifyNewOrders, setNotifyNewOrders] = useState(existing?.notify_new_orders ?? true)
-  const [notifyNewTickets, setNotifyNewTickets] = useState(existing?.notify_new_tickets ?? true)
 
   const togglePermission = (key: AdminPermission) => {
     setPermissions((prev) => (prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]))
@@ -40,7 +38,7 @@ function AdminUserForm({ existing, onDone }: { existing?: Profile; onDone: () =>
       if (isEdit && existing) {
         await updateAdminUser.mutateAsync({
           userId: existing.id,
-          patch: { role, permissions, fullName, phone, whatsapp: whatsapp || null, notifyNewOrders, notifyNewTickets },
+          patch: { role, permissions, fullName, phone, whatsapp: whatsapp || null },
         })
         toast({ title: 'Admin updated', variant: 'success' })
       } else {
@@ -52,8 +50,6 @@ function AdminUserForm({ existing, onDone }: { existing?: Profile; onDone: () =>
           password,
           role,
           permissions,
-          notifyNewOrders,
-          notifyNewTickets,
         })
         toast({ title: 'Admin account created', variant: 'success' })
       }
@@ -153,23 +149,6 @@ function AdminUserForm({ existing, onDone }: { existing?: Profile; onDone: () =>
           </div>
         </div>
       )}
-
-      <div>
-        <Label>Notifications</Label>
-        <p className="mt-1 text-label-sm text-on-surface-variant">
-          Which alerts this admin gets, both in-app and by email where applicable.
-        </p>
-        <div className="mt-2 flex flex-col gap-2">
-          <label className="flex items-center gap-2">
-            <Checkbox checked={notifyNewOrders} onCheckedChange={(v) => setNotifyNewOrders(v === true)} />
-            <span className="text-label-md normal-case text-on-surface">Notify about new orders</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox checked={notifyNewTickets} onCheckedChange={(v) => setNotifyNewTickets(v === true)} />
-            <span className="text-label-md normal-case text-on-surface">Notify about new support tickets</span>
-          </label>
-        </div>
-      </div>
 
       <DialogFooter>
         {isEdit && (

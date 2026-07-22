@@ -1,9 +1,15 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Users, MapPin, Image as ImageIcon, ShieldCheck, Plus } from 'lucide-react'
+import { LogOut, Users, MapPin, Image as ImageIcon, ShieldCheck, Plus, Bell } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ChangePasswordForm } from '@/features/account/ChangePasswordForm'
 import { useAuth } from '@/hooks/useAuth'
+import { useUpdateProfile } from '@/lib/queries/useProfile'
+import { useToast } from '@/hooks/use-toast'
+import { getErrorMessage } from '@/lib/utils'
 import { business } from '@/lib/constants'
 import { paths } from '@/routes/paths'
 import type { AdminPermission } from '@/types/database'
@@ -16,18 +22,46 @@ const quickLinks: { to: string; label: string; icon: typeof Users; permission?: 
   { to: paths.adminZones, label: 'Delivery Zones', icon: MapPin, permission: 'zones' },
   { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, permission: 'banner' },
   { to: paths.adminAdmins, label: 'Admins', icon: ShieldCheck, superAdminOnly: true },
+  { to: paths.adminNotifications, label: 'Manage Notifications', icon: Bell, superAdminOnly: true },
 ]
 
 export default function AdminSettingsPage() {
-  const { signOut, hasPermission, isSuperAdmin } = useAuth()
+  const { profile, signOut, hasPermission, isSuperAdmin } = useAuth()
   const navigate = useNavigate()
+  const updateProfile = useUpdateProfile()
+  const { toast } = useToast()
   const visibleQuickLinks = quickLinks.filter(
     (link) => (!link.permission || hasPermission(link.permission)) && (!link.superAdminOnly || isSuperAdmin),
   )
 
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+
+  useEffect(() => {
+    if (!profile) return
+    setFullName(profile.full_name)
+    setPhone(profile.phone)
+    setWhatsapp(profile.whatsapp ?? '')
+  }, [profile])
+
   const handleSignOut = async () => {
     await signOut()
     navigate(paths.home)
+  }
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!profile) return
+    try {
+      await updateProfile.mutateAsync({
+        userId: profile.id,
+        patch: { full_name: fullName, phone, whatsapp: whatsapp || null },
+      })
+      toast({ title: 'Profile updated', variant: 'success' })
+    } catch (err) {
+      toast({ title: 'Failed to update profile', description: getErrorMessage(err, 'Please try again.'), variant: 'error' })
+    }
   }
 
   return (
@@ -45,6 +79,38 @@ export default function AdminSettingsPage() {
               <p>{business.address}</p>
               <p>{business.phoneDisplay}</p>
               <p>{business.email}</p>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="mb-stack-sm text-headline-md font-display text-on-surface">My Profile</h2>
+          <Card>
+            <CardContent className="pt-stack-md">
+              <form onSubmit={handleSaveProfile} className="flex flex-col gap-stack-md">
+                <div>
+                  <Label htmlFor="settings-email">Email</Label>
+                  <Input id="settings-email" className="mt-1" value={profile?.email ?? ''} disabled />
+                </div>
+                <div className="grid grid-cols-1 gap-stack-md sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="settings-name">Full Name</Label>
+                    <Input id="settings-name" className="mt-1" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="settings-phone">Phone</Label>
+                    <Input id="settings-phone" className="mt-1" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="settings-whatsapp">WhatsApp (optional)</Label>
+                  <Input id="settings-whatsapp" className="mt-1" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+                </div>
+
+                <Button type="submit" disabled={updateProfile.isPending} className="self-start">
+                  {updateProfile.isPending ? 'Saving…' : 'Save Changes'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </section>

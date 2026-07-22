@@ -16,8 +16,6 @@ export async function createSubAdminMock(input: {
   password: string
   role: 'admin' | 'superadmin'
   permissions: AdminPermission[]
-  notifyNewOrders: boolean
-  notifyNewTickets: boolean
 }): Promise<Profile> {
   await delay(null, 500)
   if (db.profiles.some((p) => p.email.toLowerCase() === input.email.trim().toLowerCase())) {
@@ -33,8 +31,8 @@ export async function createSubAdminMock(input: {
     email: input.email.trim().toLowerCase(),
     email_verified_at: new Date().toISOString(),
     permissions: input.role === 'superadmin' ? [] : input.permissions,
-    notify_new_orders: input.notifyNewOrders,
-    notify_new_tickets: input.notifyNewTickets,
+    notify_new_orders: true,
+    notify_new_tickets: true,
     created_at: new Date().toISOString(),
   }
   db.profiles.push(profile)

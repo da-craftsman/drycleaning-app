@@ -129,7 +129,7 @@ export default function AdminBlogPostPage() {
         />
         <p className="mt-1 text-label-sm text-on-surface-variant">
           The URL for this post (yoursite.com/blog/<strong>this-part</strong>). For SEO: keep it short, lowercase,
-          hyphen-separated, and include your main keyword — aim for 3–5 words, under 60 characters. Avoid stop words
+          hyphen-separated, and include your main keyword. Aim for 3–5 words, under 60 characters. Avoid stop words
           like "a", "the", "and".
         </p>
       </div>
@@ -208,7 +208,7 @@ export default function AdminBlogPostPage() {
           onChange={(e) => setForm((f) => ({ ...f, seo_description: e.target.value }))}
         />
         <p className="mt-1 text-label-sm text-on-surface-variant">
-          The text search engines show under your title in results — separate from the excerpt above, even if
+          The text search engines show under your title in results, separate from the excerpt above, even if
           they're similar. For SEO: 150–160 characters, include your main keyword near the start, be specific
           (not generic), and make every post's description unique so pages don't compete with each other.
         </p>

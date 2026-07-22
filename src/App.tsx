@@ -53,6 +53,7 @@ const AdminBlogPage = lazy(() => import('@/pages/admin/AdminBlogPage'))
 const AdminBlogPostPage = lazy(() => import('@/pages/admin/AdminBlogPostPage'))
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'))
 const AdminAdminsPage = lazy(() => import('@/pages/admin/AdminAdminsPage'))
+const AdminManageNotificationsPage = lazy(() => import('@/pages/admin/AdminManageNotificationsPage'))
 const AdminWalkInOrderPage = lazy(() => import('@/pages/admin/AdminWalkInOrderPage'))
 
 // Lazy-loaded (and only routed to in dev) so the dev-only kit page is excluded from production bundles.
@@ -165,6 +166,7 @@ function App() {
 
           <Route element={<RequireSuperAdmin />}>
             <Route path={paths.adminAdmins} element={<AdminAdminsPage />} />
+            <Route path={paths.adminNotifications} element={<AdminManageNotificationsPage />} />
           </Route>
         </Route>
       </Route>

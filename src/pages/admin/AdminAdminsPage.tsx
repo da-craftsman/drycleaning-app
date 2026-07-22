@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, ShieldCheck, BellOff } from 'lucide-react'
+import { Plus, ShieldCheck } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -64,19 +64,6 @@ export default function AdminAdminsPage() {
                       </Badge>
                     ))
                   )}
-                  {!admin.notify_new_orders && !admin.notify_new_tickets ? (
-                    <Badge variant="neutral">
-                      <BellOff className="h-3 w-3" /> Notifications off
-                    </Badge>
-                  ) : !admin.notify_new_orders ? (
-                    <Badge variant="neutral">
-                      <BellOff className="h-3 w-3" /> Orders muted
-                    </Badge>
-                  ) : !admin.notify_new_tickets ? (
-                    <Badge variant="neutral">
-                      <BellOff className="h-3 w-3" /> Tickets muted
-                    </Badge>
-                  ) : null}
                   <Button size="sm" variant="outline" onClick={() => setEditing(admin)}>
                     Edit
                   </Button>

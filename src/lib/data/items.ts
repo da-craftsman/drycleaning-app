@@ -50,7 +50,7 @@ export async function deleteClothingItem(itemId: string): Promise<void> {
   const { error } = await supabase!.from('clothing_items').delete().eq('id', itemId)
   if (error) {
     if (error.code === '23503') {
-      throw new Error('This item has past orders attached to it and can\'t be deleted — hide it instead.')
+      throw new Error('This item has past orders attached to it and can\'t be deleted, hide it instead.')
     }
     throw error
   }
