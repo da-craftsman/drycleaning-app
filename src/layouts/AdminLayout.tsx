@@ -12,6 +12,7 @@ import {
   Settings,
   ShieldCheck,
   LogOut,
+  Plus,
 } from 'lucide-react'
 import { Logo, LogoMark } from '@/components/brand/Logo'
 import { AdminBottomNav } from '@/components/navigation/AdminBottomNav'
@@ -35,6 +36,7 @@ const sidebarLinks: {
   superAdminOnly?: boolean
 }[] = [
   { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: paths.adminWalkIn, label: 'Walk-in Order', icon: Plus, end: false, permission: 'walkin' },
   { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order', permission: 'orders' },
   { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false, permission: 'customers' },
   { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false, permission: 'catalog' },

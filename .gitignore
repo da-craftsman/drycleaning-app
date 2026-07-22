@@ -29,3 +29,8 @@ dev-dist
 # Internal project notes and Claude Code local settings — not part of the app itself
 use/
 .claude/
+
+# Supabase schema, migrations, and edge functions — not needed for the app to build/run (the app
+# only talks to Supabase over HTTP via env vars); these are run/deployed manually against the
+# project instead. Kept on disk, just no longer version-controlled.
+supabase/

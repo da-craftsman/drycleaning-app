@@ -53,6 +53,7 @@ const AdminBlogPage = lazy(() => import('@/pages/admin/AdminBlogPage'))
 const AdminBlogPostPage = lazy(() => import('@/pages/admin/AdminBlogPostPage'))
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'))
 const AdminAdminsPage = lazy(() => import('@/pages/admin/AdminAdminsPage'))
+const AdminWalkInOrderPage = lazy(() => import('@/pages/admin/AdminWalkInOrderPage'))
 
 // Lazy-loaded (and only routed to in dev) so the dev-only kit page is excluded from production bundles.
 const UiKitPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/UiKitPage')) : null
@@ -157,6 +158,9 @@ function App() {
           <Route element={<RequirePermission feature="blog" />}>
             <Route path={paths.adminBlog} element={<AdminBlogPage />} />
             <Route path="/admin/blog/:id" element={<AdminBlogPostPage />} />
+          </Route>
+          <Route element={<RequirePermission feature="walkin" />}>
+            <Route path={paths.adminWalkIn} element={<AdminWalkInOrderPage />} />
           </Route>
 
           <Route element={<RequireSuperAdmin />}>

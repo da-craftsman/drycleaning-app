@@ -14,7 +14,7 @@ interface AddItemInput {
   readyIn: string
 }
 
-interface CartState {
+export interface CartState {
   items: CartItem[]
   addItem: (input: AddItemInput) => void
   removeItem: (cartItemId: string) => void
@@ -29,9 +29,13 @@ function cartItemId(itemId: string, tier: ServiceTier) {
   return `${itemId}::${tier}`
 }
 
-export const useCartStore = create<CartState>()(
-  persist(
-    (set, get) => ({
+/** Builds an independently-persisted cart store — used to give the admin walk-in order flow its
+ * own cart, so it never collides with whatever a signed-in admin might have in their own personal
+ * customer-facing cart on the same browser. */
+export function createCartStore(persistKey: string) {
+  return create<CartState>()(
+    persist(
+      (set, get) => ({
       items: [],
 
       addItem: (input) =>
@@ -99,8 +103,11 @@ export const useCartStore = create<CartState>()(
 
       cartTotal: () => get().items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0),
 
-      itemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
-    }),
-    { name: 'srl-cart' },
-  ),
-)
+        itemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      }),
+      { name: persistKey },
+    ),
+  )
+}
+
+export const useCartStore = createCartStore('srl-cart')

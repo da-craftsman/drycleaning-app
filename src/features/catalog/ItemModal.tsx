@@ -9,21 +9,26 @@ import { availableTiers, tierPrice, tierTime } from '@/features/catalog/tierPric
 import { useCartStore } from '@/store/useCartStore'
 import { useToast } from '@/hooks/use-toast'
 import type { ClothingItem, ServiceTier } from '@/types/database'
+import type { CartState } from '@/store/useCartStore'
+import type { UseBoundStore, StoreApi } from 'zustand'
 
 function ItemModal({
   item,
   categoryName,
   onClose,
+  useStore = useCartStore,
 }: {
   item: ClothingItem | null
   categoryName: string
   onClose: () => void
+  /** Which cart store to add into — defaults to the customer-facing cart; pass useWalkInCartStore from the admin walk-in flow. */
+  useStore?: UseBoundStore<StoreApi<CartState>>
 }) {
   const [tier, setTier] = useState<ServiceTier>('regular')
   const [quantity, setQuantity] = useState(1)
   // Keeps the last item rendered while the panel animates closed, instead of the content vanishing instantly.
   const [displayItem, setDisplayItem] = useState(item)
-  const addItem = useCartStore((s) => s.addItem)
+  const addItem = useStore((s) => s.addItem)
   const { toast } = useToast()
 
   useEffect(() => {

@@ -87,6 +87,15 @@ const twMerge = extendTailwindMerge({
       'gradient-via': colorClasses('via'),
       'gradient-to': colorClasses('to'),
     },
+    // Registers our custom spacing scale (src/index.css's --spacing-stack-* tokens) so tailwind-merge
+    // recognizes e.g. `py-stack-md` as conflicting with (and overriding) `pt-0` on the same axis.
+    // Without this, unrecognized custom spacing utilities aren't grouped with the standard p/m/gap
+    // utilities they conflict with, so both survive in the DOM and the actual generated CSS's source
+    // order decides the winner — e.g. Card's default `pt-0` silently beat a passed-in `py-stack-md`,
+    // leaving several cards with zero top padding on mobile despite the JSX looking correct.
+    theme: {
+      spacing: ['stack-sm', 'stack-md', 'stack-lg'],
+    },
   },
 })
 

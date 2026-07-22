@@ -1,6 +1,6 @@
 export type UserRole = 'customer' | 'admin' | 'superadmin'
 
-export type AdminPermission = 'orders' | 'customers' | 'catalog' | 'zones' | 'banner' | 'tickets' | 'blog'
+export type AdminPermission = 'orders' | 'customers' | 'catalog' | 'zones' | 'banner' | 'tickets' | 'blog' | 'walkin'
 
 export type ServiceTier = 'regular' | 'white' | 'express'
 

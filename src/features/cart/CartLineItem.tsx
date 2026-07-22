@@ -6,13 +6,15 @@ import { useCartStore } from '@/store/useCartStore'
 import { useClothingItem } from '@/lib/queries/useClothingItems'
 import type { CartItem } from '@/types/domain'
 import type { ServiceTier } from '@/types/database'
+import type { CartState } from '@/store/useCartStore'
+import type { UseBoundStore, StoreApi } from 'zustand'
 
 const tierLabels: Record<ServiceTier, string> = { regular: 'Regular', white: 'White Wash', express: 'Express' }
 
-function CartLineItem({ line }: { line: CartItem }) {
-  const updateQuantity = useCartStore((s) => s.updateQuantity)
-  const updateTier = useCartStore((s) => s.updateTier)
-  const removeItem = useCartStore((s) => s.removeItem)
+function CartLineItem({ line, useStore = useCartStore }: { line: CartItem; useStore?: UseBoundStore<StoreApi<CartState>> }) {
+  const updateQuantity = useStore((s) => s.updateQuantity)
+  const updateTier = useStore((s) => s.updateTier)
+  const removeItem = useStore((s) => s.removeItem)
   const { data: fullItem } = useClothingItem(line.itemId)
   // Falls back to every tier while the item is still loading — the current tier (already valid,
   // set when this line was added) stays selectable either way.

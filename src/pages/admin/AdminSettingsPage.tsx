@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Users, MapPin, Image as ImageIcon, ShieldCheck } from 'lucide-react'
+import { LogOut, Users, MapPin, Image as ImageIcon, ShieldCheck, Plus } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChangePasswordForm } from '@/features/account/ChangePasswordForm'
@@ -11,6 +11,7 @@ import type { AdminPermission } from '@/types/database'
 // Desktop reaches these via the sidebar directly — this list exists so they're still one tap away
 // from the mobile bottom nav's "Menu" destination, which is this page.
 const quickLinks: { to: string; label: string; icon: typeof Users; permission?: AdminPermission; superAdminOnly?: boolean }[] = [
+  { to: paths.adminWalkIn, label: 'Walk-in Order', icon: Plus, permission: 'walkin' },
   { to: paths.adminCustomers, label: 'Customers', icon: Users, permission: 'customers' },
   { to: paths.adminZones, label: 'Delivery Zones', icon: MapPin, permission: 'zones' },
   { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, permission: 'banner' },

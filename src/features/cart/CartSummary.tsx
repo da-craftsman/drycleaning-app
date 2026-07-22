@@ -4,10 +4,18 @@ import { Button } from '@/components/ui/button'
 import { CartLineItem } from '@/features/cart/CartLineItem'
 import { formatNaira } from '@/features/catalog/ItemCard'
 import { useCartStore } from '@/store/useCartStore'
+import type { CartState } from '@/store/useCartStore'
+import type { UseBoundStore, StoreApi } from 'zustand'
 
-function CartSummary({ onProceed }: { onProceed: () => void }) {
-  const items = useCartStore((s) => s.items)
-  const subtotal = useCartStore((s) => s.cartTotal())
+function CartSummary({
+  onProceed,
+  useStore = useCartStore,
+}: {
+  onProceed: () => void
+  useStore?: UseBoundStore<StoreApi<CartState>>
+}) {
+  const items = useStore((s) => s.items)
+  const subtotal = useStore((s) => s.cartTotal())
 
   return (
     <Card>
@@ -24,7 +32,7 @@ function CartSummary({ onProceed }: { onProceed: () => void }) {
           <>
             <div className="flex flex-col">
               {items.map((line) => (
-                <CartLineItem key={line.cartItemId} line={line} />
+                <CartLineItem key={line.cartItemId} line={line} useStore={useStore} />
               ))}
             </div>
             <div className="flex items-center justify-between border-t border-outline-variant/40 pt-stack-sm">

@@ -1,6 +1,6 @@
 import type { AdminPermission } from '@/types/database'
 
-/** The 7 delegable admin features a superadmin can grant to a sub-admin. Settings and admin-user
+/** The 8 delegable admin features a superadmin can grant to a sub-admin. Settings and admin-user
  * management are intentionally excluded — they stay superadmin-only regardless of grants. */
 export const ADMIN_PERMISSIONS: { key: AdminPermission; label: string }[] = [
   { key: 'orders', label: 'Orders' },
@@ -10,6 +10,7 @@ export const ADMIN_PERMISSIONS: { key: AdminPermission; label: string }[] = [
   { key: 'banner', label: 'Banner' },
   { key: 'tickets', label: 'Tickets' },
   { key: 'blog', label: 'Blog' },
+  { key: 'walkin', label: 'Walk-in Orders' },
 ]
 
 /** Business contact details. */

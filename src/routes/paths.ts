@@ -41,4 +41,5 @@ export const paths = {
   adminBlogPost: (id: string) => `/admin/blog/${id}`,
   adminSettings: '/admin/settings',
   adminAdmins: '/admin/admins',
+  adminWalkIn: '/admin/walk-in',
 } as const
