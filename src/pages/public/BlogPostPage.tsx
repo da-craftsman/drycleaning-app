@@ -60,6 +60,9 @@ export default function BlogPostPage() {
             '[&_h3]:font-display [&_h3]:text-body-lg [&_h3]:font-bold [&_h3]:text-on-surface',
             '[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1',
             '[&_blockquote]:border-l-4 [&_blockquote]:border-outline-variant [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-on-surface-variant',
+            '[&_hr]:my-2 [&_hr]:border-outline-variant',
+            '[&_code]:rounded [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-body-md',
+            '[&_img]:rounded-lg [&_img]:w-full',
             '[&_a]:text-primary [&_a]:underline [&_strong]:font-bold',
           ].join(' ')}
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}

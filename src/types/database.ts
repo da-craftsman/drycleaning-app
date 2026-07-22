@@ -101,6 +101,7 @@ export interface Order {
   payment_status: PaymentStatus
   paystack_reference: string | null
   confirmation_email_sent_at: string | null
+  ready_email_sent_at: string | null
   created_at: string
   updated_at: string
 }

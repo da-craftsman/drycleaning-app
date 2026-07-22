@@ -120,7 +120,18 @@ export default function AdminBlogPostPage() {
 
       <div>
         <Label htmlFor="slug">Slug</Label>
-        <Input id="slug" className="mt-1" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} />
+        <Input
+          id="slug"
+          className="mt-1"
+          placeholder="express-vs-regular-wash-guide"
+          value={form.slug}
+          onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+        />
+        <p className="mt-1 text-label-sm text-on-surface-variant">
+          The URL for this post (yoursite.com/blog/<strong>this-part</strong>). For SEO: keep it short, lowercase,
+          hyphen-separated, and include your main keyword — aim for 3–5 words, under 60 characters. Avoid stop words
+          like "a", "the", "and".
+        </p>
       </div>
 
       <div>
@@ -167,7 +178,17 @@ export default function AdminBlogPostPage() {
 
       <div>
         <Label htmlFor="excerpt">Excerpt</Label>
-        <Textarea id="excerpt" className="mt-1" value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} />
+        <Textarea
+          id="excerpt"
+          className="mt-1"
+          placeholder="Every item in our catalog comes in three service tiers, here's how to pick the right one for your schedule."
+          value={form.excerpt}
+          onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))}
+        />
+        <p className="mt-1 text-label-sm text-on-surface-variant">
+          The short summary shown on blog listing cards and social shares. For SEO: 1–2 sentences, 120–160
+          characters, lead with your main keyword, and make it a reason to click, not just a topic label.
+        </p>
       </div>
 
       <div>
@@ -182,9 +203,15 @@ export default function AdminBlogPostPage() {
         <Textarea
           id="seo"
           className="mt-1"
+          placeholder="Learn the difference between Regular and Express laundry service and which one fits your schedule best."
           value={form.seo_description ?? ''}
           onChange={(e) => setForm((f) => ({ ...f, seo_description: e.target.value }))}
         />
+        <p className="mt-1 text-label-sm text-on-surface-variant">
+          The text search engines show under your title in results — separate from the excerpt above, even if
+          they're similar. For SEO: 150–160 characters, include your main keyword near the start, be specific
+          (not generic), and make every post's description unique so pages don't compete with each other.
+        </p>
       </div>
 
       <div className="flex items-center gap-2">

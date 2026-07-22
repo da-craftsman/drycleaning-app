@@ -238,6 +238,7 @@ function buildOrder(opts: {
       payment_status: opts.paymentStatus,
       paystack_reference: null,
       confirmation_email_sent_at: null,
+      ready_email_sent_at: null,
       created_at: created.toISOString(),
       updated_at: created.toISOString(),
     },

@@ -68,6 +68,7 @@ export async function createOrderMock(input: CreateOrderInput): Promise<Order> {
     payment_status: 'pending',
     paystack_reference: null,
     confirmation_email_sent_at: null,
+    ready_email_sent_at: null,
     created_at: now,
     updated_at: now,
   }

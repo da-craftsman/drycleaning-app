@@ -38,5 +38,10 @@ export async function updateDeliveryZone(
 export async function deleteDeliveryZone(zoneId: string): Promise<void> {
   if (!isSupabaseConfigured) return deleteDeliveryZoneMock(zoneId)
   const { error } = await supabase!.from('delivery_zones').delete().eq('id', zoneId)
-  if (error) throw error
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error('This zone has past orders attached to it and can\'t be deleted.')
+    }
+    throw error
+  }
 }
