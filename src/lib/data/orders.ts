@@ -1,5 +1,5 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
-import { generateOrderDisplayId } from '@/lib/utils'
+import { generateOrderDisplayId, getFunctionErrorMessage } from '@/lib/utils'
 import { isMixedExpress } from '@/lib/orderTiers'
 import {
   createOrderMock,
@@ -142,7 +142,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 export async function verifyPaystackPayment(orderId: string, reference: string): Promise<{ verified: boolean; error?: string }> {
   if (!isSupabaseConfigured) return verifyPaystackPaymentMock(orderId, reference)
   const { data, error } = await supabase!.functions.invoke('verify-payment', { body: { orderId, reference } })
-  if (error) return { verified: false, error: error.message }
+  if (error) return { verified: false, error: await getFunctionErrorMessage(error, 'Payment verification failed.') }
   return data
 }
 

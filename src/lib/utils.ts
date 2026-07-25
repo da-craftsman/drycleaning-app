@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import type { ClassValue } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 
 // Every custom color token defined in src/index.css's @theme block. Without registering these,
 // tailwind-merge falls back to lumping any unrecognized `text-*` utility (our custom font-size
@@ -118,6 +119,25 @@ export function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message
   if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') return err.message
   return fallback
+}
+
+/**
+ * `supabase.functions.invoke()` only ever surfaces a generic "Edge Function returned a non-2xx
+ * status code" message on failure — the actual reason (e.g. "Only superadmins can create admin
+ * accounts", "An account with this email already exists") is JSON in the response body, reachable
+ * via the error's `context` (the raw fetch Response). Without this, every edge-function failure
+ * looks identical to the user regardless of cause.
+ */
+export async function getFunctionErrorMessage(err: unknown, fallback: string): Promise<string> {
+  if (err instanceof FunctionsHttpError) {
+    try {
+      const body = await err.context.json()
+      if (body && typeof body.error === 'string') return body.error
+    } catch {
+      // Response body wasn't JSON (e.g. the function isn't deployed at all) — fall through.
+    }
+  }
+  return getErrorMessage(err, fallback)
 }
 
 /** Short, customer-friendly order display ID, e.g. "SRL-178446" — the last 6 digits of a millisecond timestamp. */

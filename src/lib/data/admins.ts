@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { createSubAdminMock, getAdminUsersMock, updateAdminUserMock } from '@/lib/data/mock/admins.mock'
+import { getFunctionErrorMessage } from '@/lib/utils'
 import type { AdminPermission, Profile, UserRole } from '@/types/database'
 
 export async function getAdminUsers(): Promise<Profile[]> {
@@ -30,7 +31,7 @@ export async function createSubAdmin(input: {
 }): Promise<Profile> {
   if (!isSupabaseConfigured) return createSubAdminMock(input)
   const { data, error } = await supabase!.functions.invoke('create-admin-user', { body: input })
-  if (error) throw error
+  if (error) throw new Error(await getFunctionErrorMessage(error, 'Failed to create admin account.'))
   return data
 }
 

@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { createWalkInCustomerMock } from '@/lib/data/mock/walkin.mock'
+import { getFunctionErrorMessage } from '@/lib/utils'
 import type { Profile } from '@/types/database'
 
 /**
@@ -18,6 +19,6 @@ export async function createWalkInCustomer(input: {
 }): Promise<Profile> {
   if (!isSupabaseConfigured) return createWalkInCustomerMock(input)
   const { data, error } = await supabase!.functions.invoke('create-walkin-customer', { body: input })
-  if (error) throw error
+  if (error) throw new Error(await getFunctionErrorMessage(error, 'Failed to create walk-in customer.'))
   return data
 }
