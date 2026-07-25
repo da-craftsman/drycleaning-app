@@ -93,13 +93,29 @@ function AdminUserForm({ existing, onDone }: { existing?: Profile; onDone: () =>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="admin-phone">Phone</Label>
-          <Input id="admin-phone" className="mt-1" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+          <Input
+            id="admin-phone"
+            className="mt-1"
+            placeholder="+2348012345678"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
         </div>
         <div>
           <Label htmlFor="admin-whatsapp">WhatsApp (optional)</Label>
-          <Input id="admin-whatsapp" className="mt-1" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+          <Input
+            id="admin-whatsapp"
+            className="mt-1"
+            placeholder="+2348012345678"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+          />
         </div>
       </div>
+      <p className="-mt-2 text-label-sm text-on-surface-variant">
+        Phone must include the country code, e.g. +2348012345678 (no leading 0). Account creation fails without it.
+      </p>
 
       {!isEdit && (
         <div>

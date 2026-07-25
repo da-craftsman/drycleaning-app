@@ -257,13 +257,29 @@ export default function AdminWalkInOrderPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="walkin-phone">Phone</Label>
-                    <Input id="walkin-phone" className="mt-1" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} required />
+                    <Input
+                      id="walkin-phone"
+                      className="mt-1"
+                      placeholder="+2348012345678"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      required
+                    />
                   </div>
                   <div>
                     <Label htmlFor="walkin-whatsapp">WhatsApp (optional)</Label>
-                    <Input id="walkin-whatsapp" className="mt-1" value={newWhatsapp} onChange={(e) => setNewWhatsapp(e.target.value)} />
+                    <Input
+                      id="walkin-whatsapp"
+                      className="mt-1"
+                      placeholder="+2348012345678"
+                      value={newWhatsapp}
+                      onChange={(e) => setNewWhatsapp(e.target.value)}
+                    />
                   </div>
                 </div>
+                <p className="-mt-2 text-label-sm text-on-surface-variant">
+                  Phone must include the country code, e.g. +2348012345678 (no leading 0). Account creation fails without it.
+                </p>
                 <div>
                   <Label htmlFor="walkin-email">Email (optional)</Label>
                   <Input id="walkin-email" type="email" className="mt-1" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
