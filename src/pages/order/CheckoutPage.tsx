@@ -11,7 +11,7 @@ import { useCheckoutStore } from '@/store/useCheckoutStore'
 import { useDeliveryZones } from '@/lib/queries/useDeliveryZones'
 import { useSession } from '@/lib/queries/useSession'
 import { useCreateOrder } from '@/lib/queries/useCreateOrder'
-import { sendOrderConfirmationEmail } from '@/lib/data/orders'
+import { sendNewOrderNotificationEmail, sendOrderConfirmationEmail } from '@/lib/data/orders'
 import { paths } from '@/routes/paths'
 import type { Order, PaymentMethod } from '@/types/database'
 
@@ -95,8 +95,9 @@ export default function CheckoutPage() {
     resetCheckout()
     navigate(paths.confirmation(order.display_id))
     // Best-effort: the order is already placed at this point, so a mailer hiccup shouldn't affect
-    // checkout — it's just a confirmation email, not something to block or retry on the customer's behalf.
+    // checkout — these are just notification emails, not something to block or retry on the customer's behalf.
     sendOrderConfirmationEmail(order.id).catch((err) => console.error('Failed to send order confirmation email', err))
+    sendNewOrderNotificationEmail(order.id).catch((err) => console.error('Failed to send new-order notification email', err))
   }
 
   const handleCashOnDelivery = async () => {

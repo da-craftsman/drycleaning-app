@@ -153,6 +153,13 @@ export async function sendOrderConfirmationEmail(orderId: string): Promise<void>
   if (error) throw error
 }
 
+/** Emails every admin with new-order notifications enabled about a new order. Best-effort — a failed send shouldn't block checkout. Not called for walk-in orders (staff already know). */
+export async function sendNewOrderNotificationEmail(orderId: string): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const { error } = await supabase!.functions.invoke('send-new-order-notification', { body: { orderId } })
+  if (error) throw new Error(await getFunctionErrorMessage(error, 'Failed to send new-order notification email.'))
+}
+
 /** Emails the customer that their order is ready for pickup/delivery. Best-effort — a failed send shouldn't block the status change. */
 export async function sendOrderReadyEmail(orderId: string): Promise<void> {
   if (!isSupabaseConfigured) return
