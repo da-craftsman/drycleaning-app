@@ -31,8 +31,8 @@ interface MenuLink {
   badge?: number
 }
 
-function MobileMenu() {
-  const [open, setOpen] = useState(false)
+/** The sheet's contents, shared between the header's hamburger trigger and the bottom nav's Menu tab. */
+function MobileMenuContent({ onNavigate }: { onNavigate: () => void }) {
   const { isAuthenticated, isAdmin, profile, signOut } = useAuth()
   const itemCount = useCartStore((s) => s.itemCount())
   const navigate = useNavigate()
@@ -57,10 +57,88 @@ function MobileMenu() {
     : []
 
   const handleSignOut = async () => {
-    setOpen(false)
+    onNavigate()
     await signOut()
     navigate(paths.home)
   }
+
+  return (
+    <>
+      <SheetTitle className="sr-only">Menu</SheetTitle>
+      <Logo className="mb-stack-md self-start" />
+
+      {isAuthenticated && profile && (
+        <div className="mb-stack-sm rounded border border-outline-variant/40 bg-surface-container-low p-stack-sm">
+          <p className="text-label-md font-bold normal-case text-on-surface">{profile.full_name}</p>
+          <p className="text-label-sm text-on-surface-variant">{profile.email}</p>
+        </div>
+      )}
+
+      <nav className="flex flex-col gap-1" aria-label="Menu">
+        {browseLinks.map((link) => (
+          <MenuItem key={link.label} link={link} onClick={onNavigate} />
+        ))}
+      </nav>
+
+      {accountLinks.length > 0 && (
+        <>
+          <p className="mb-1 mt-stack-md text-label-sm uppercase text-on-surface-variant">Account</p>
+          <nav className="flex flex-col gap-1" aria-label="Account">
+            {accountLinks.map((link) => (
+              <MenuItem key={link.label} link={link} onClick={onNavigate} />
+            ))}
+          </nav>
+        </>
+      )}
+
+      {isAdmin && (
+        <>
+          <p className="mb-1 mt-stack-md text-label-sm uppercase text-on-surface-variant">Admin</p>
+          <nav className="flex flex-col gap-1" aria-label="Admin">
+            <MenuItem link={{ to: paths.admin, label: 'Admin Dashboard', icon: LayoutDashboard }} onClick={onNavigate} />
+          </nav>
+        </>
+      )}
+
+      <div className="mt-stack-md border-t border-outline-variant/40 pt-stack-md">
+        {isAuthenticated ? (
+          <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" /> Log Out
+          </Button>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Button asChild onClick={onNavigate}>
+              <Link to={paths.login}>
+                <LogIn className="h-4 w-4" /> Log In
+              </Link>
+            </Button>
+            <Button variant="outline" asChild onClick={onNavigate}>
+              <Link to={paths.signup}>
+                <UserPlus className="h-4 w-4" /> Sign Up
+              </Link>
+            </Button>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** Sheet-only variant, for callers (like the bottom nav) that supply their own trigger and just need
+ * to control open state. */
+function MobileMenuSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="flex max-h-[90svh] flex-col overflow-y-auto">
+        <MobileMenuContent onNavigate={() => onOpenChange(false)} />
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+/** Self-contained hamburger button + sheet, used in the header. */
+function MobileMenu() {
+  const [open, setOpen] = useState(false)
 
   return (
     <>
@@ -73,69 +151,7 @@ function MobileMenu() {
         <Menu className="h-5 w-5" />
       </button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="flex max-h-[90svh] flex-col overflow-y-auto">
-          <SheetTitle className="sr-only">Menu</SheetTitle>
-          <Logo className="mb-stack-md" />
-
-          {isAuthenticated && profile && (
-            <div className="mb-stack-sm rounded border border-outline-variant/40 bg-surface-container-low p-stack-sm">
-              <p className="text-label-md font-bold normal-case text-on-surface">{profile.full_name}</p>
-              <p className="text-label-sm text-on-surface-variant">{profile.email}</p>
-            </div>
-          )}
-
-          <nav className="flex flex-col gap-1" aria-label="Menu">
-            {browseLinks.map((link) => (
-              <MenuItem key={link.label} link={link} onClick={() => setOpen(false)} />
-            ))}
-          </nav>
-
-          {accountLinks.length > 0 && (
-            <>
-              <p className="mb-1 mt-stack-md text-label-sm uppercase text-on-surface-variant">Account</p>
-              <nav className="flex flex-col gap-1" aria-label="Account">
-                {accountLinks.map((link) => (
-                  <MenuItem key={link.label} link={link} onClick={() => setOpen(false)} />
-                ))}
-              </nav>
-            </>
-          )}
-
-          {isAdmin && (
-            <>
-              <p className="mb-1 mt-stack-md text-label-sm uppercase text-on-surface-variant">Admin</p>
-              <nav className="flex flex-col gap-1" aria-label="Admin">
-                <MenuItem
-                  link={{ to: paths.admin, label: 'Admin Dashboard', icon: LayoutDashboard }}
-                  onClick={() => setOpen(false)}
-                />
-              </nav>
-            </>
-          )}
-
-          <div className="mt-stack-md border-t border-outline-variant/40 pt-stack-md">
-            {isAuthenticated ? (
-              <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4" /> Log Out
-              </Button>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Button asChild onClick={() => setOpen(false)}>
-                  <Link to={paths.login}>
-                    <LogIn className="h-4 w-4" /> Log In
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild onClick={() => setOpen(false)}>
-                  <Link to={paths.signup}>
-                    <UserPlus className="h-4 w-4" /> Sign Up
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
+      <MobileMenuSheet open={open} onOpenChange={setOpen} />
     </>
   )
 }
@@ -162,4 +178,4 @@ function MenuItem({ link, onClick }: { link: MenuLink; onClick: () => void }) {
   )
 }
 
-export { MobileMenu }
+export { MobileMenu, MobileMenuSheet }

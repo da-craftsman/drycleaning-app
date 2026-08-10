@@ -1,21 +1,6 @@
 import { Suspense } from 'react'
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  ClipboardList,
-  History,
-  Users,
-  Tags,
-  MapPin,
-  Image as ImageIcon,
-  MessageSquare,
-  Newspaper,
-  Settings,
-  ShieldCheck,
-  Bell,
-  LogOut,
-  Plus,
-} from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { Logo, LogoMark } from '@/components/brand/Logo'
 import { AdminBottomNav } from '@/components/navigation/AdminBottomNav'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -24,40 +9,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadNotifications } from '@/lib/queries/useNotifications'
+import { adminSidebarLinks } from '@/lib/adminNav'
 import { paths } from '@/routes/paths'
 import { cn } from '@/lib/utils'
-import type { AdminPermission, NotificationType } from '@/types/database'
-
-const sidebarLinks: {
-  to: string
-  label: string
-  icon: typeof LayoutDashboard
-  end: boolean
-  dotType?: NotificationType
-  permission?: AdminPermission
-  superAdminOnly?: boolean
-}[] = [
-  { to: paths.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: paths.adminWalkIn, label: 'Walk-in Order', icon: Plus, end: false, permission: 'walkin' },
-  { to: paths.adminOrders, label: 'Orders', icon: ClipboardList, end: false, dotType: 'new_order', permission: 'orders' },
-  { to: paths.adminOrderHistory, label: 'Order History', icon: History, end: false, permission: 'orders' },
-  { to: paths.adminCustomers, label: 'Customers', icon: Users, end: false, permission: 'customers' },
-  { to: paths.adminCatalog, label: 'Catalog & Pricing', icon: Tags, end: false, permission: 'catalog' },
-  { to: paths.adminZones, label: 'Zones', icon: MapPin, end: false, permission: 'zones' },
-  { to: paths.adminBanner, label: 'Banner', icon: ImageIcon, end: false, permission: 'banner' },
-  { to: paths.adminTickets, label: 'Tickets', icon: MessageSquare, end: false, dotType: 'new_ticket', permission: 'tickets' },
-  { to: paths.adminBlog, label: 'Blog', icon: Newspaper, end: false, permission: 'blog' },
-  { to: paths.adminAdmins, label: 'Admins', icon: ShieldCheck, end: false, superAdminOnly: true },
-  { to: paths.adminNotifications, label: 'Manage Notifications', icon: Bell, end: false, superAdminOnly: true },
-  { to: paths.adminSettings, label: 'Settings', icon: Settings, end: false },
-]
 
 /** Admin shell: desktop sidebar, mobile bottom nav with a walk-in-order FAB. */
 function AdminLayout() {
   const { profile, signOut, hasPermission, isSuperAdmin } = useAuth()
   const navigate = useNavigate()
   const { data: unread } = useUnreadNotifications(profile?.id)
-  const visibleLinks = sidebarLinks.filter(
+  const visibleLinks = adminSidebarLinks.filter(
     (link) => (!link.permission || hasPermission(link.permission)) && (!link.superAdminOnly || isSuperAdmin),
   )
 
