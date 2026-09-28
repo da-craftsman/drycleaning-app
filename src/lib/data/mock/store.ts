@@ -1,6 +1,7 @@
 import * as seed from '@/lib/data/mock/seed'
 import type {
   BlogPost,
+  ClothingCategory,
   ClothingItem,
   ComplaintTicket,
   DeliveryZone,
@@ -15,12 +16,13 @@ import type {
 
 // Bump this whenever seed data shape or content changes materially, so browsers with an older
 // cached mock DB (a different catalog, missing fields, etc.) reseed instead of reading stale data.
-const STORAGE_KEY = 'srl-mock-db-v14'
+const STORAGE_KEY = 'srl-mock-db-v15'
 
 /** Every seeded account starts with this password; changed per-user via updatePasswordMock. */
 export const MOCK_DEMO_PASSWORD = 'password123'
 
 interface MockDb {
+  clothingCategories: ClothingCategory[]
   clothingItems: ClothingItem[]
   deliveryZones: DeliveryZone[]
   promoBanner: PromoBanner
@@ -39,6 +41,7 @@ interface MockDb {
 
 function freshDb(): MockDb {
   return {
+    clothingCategories: structuredClone(seed.categories),
     clothingItems: structuredClone(seed.clothingItems),
     deliveryZones: structuredClone(seed.deliveryZones),
     promoBanner: structuredClone(seed.promoBanner),

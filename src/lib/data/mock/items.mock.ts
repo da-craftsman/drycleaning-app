@@ -1,6 +1,14 @@
 import { db, delay, persist } from '@/lib/data/mock/store'
 import type { ClothingItem } from '@/types/database'
 
+export interface NewClothingItemInput {
+  categoryId: string
+  name: string
+  priceRegular: number | null
+  priceWhite: number | null
+  priceExpress: number | null
+}
+
 export function getClothingItemsMock(): Promise<ClothingItem[]> {
   return delay(db.clothingItems.filter((i) => i.is_active))
 }
@@ -22,6 +30,25 @@ export function updateClothingItemMock(
   Object.assign(item, patch)
   persist()
   return delay(item)
+}
+
+export function createClothingItemMock(input: NewClothingItemInput): Promise<ClothingItem> {
+  const item: ClothingItem = {
+    id: `item-${crypto.randomUUID()}`,
+    category_id: input.categoryId,
+    name: input.name,
+    thumbnail_url: null,
+    price_regular: input.priceRegular,
+    price_white: input.priceWhite,
+    price_express: input.priceExpress,
+    time_regular: null,
+    time_white: null,
+    time_express: null,
+    is_active: true,
+  }
+  db.clothingItems.push(item)
+  persist()
+  return delay(item, 400)
 }
 
 export function deleteClothingItemMock(itemId: string): Promise<void> {

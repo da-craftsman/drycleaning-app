@@ -1,5 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteClothingItem, getAllClothingItems, getClothingItem, getClothingItems, updateClothingItem } from '@/lib/data/items'
+import {
+  createClothingItem,
+  deleteClothingItem,
+  getAllClothingItems,
+  getClothingItem,
+  getClothingItems,
+  updateClothingItem,
+} from '@/lib/data/items'
+import type { NewClothingItemInput } from '@/lib/data/mock/items.mock'
 import { queryKeys } from '@/lib/queries/keys'
 import type { ClothingItem } from '@/types/database'
 
@@ -30,6 +38,17 @@ export function useUpdateClothingItem() {
       itemId: string
       patch: Partial<Pick<ClothingItem, 'price_regular' | 'price_white' | 'price_express' | 'is_active' | 'thumbnail_url'>>
     }) => updateClothingItem(itemId, patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.items })
+      queryClient.invalidateQueries({ queryKey: queryKeys.allItems })
+    },
+  })
+}
+
+export function useCreateClothingItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: NewClothingItemInput) => createClothingItem(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.items })
       queryClient.invalidateQueries({ queryKey: queryKeys.allItems })

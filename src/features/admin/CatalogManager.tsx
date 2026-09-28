@@ -1,18 +1,27 @@
 import { useState } from 'react'
-import { Shirt, Trash2 } from 'lucide-react'
+import { Plus, Shirt, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import { useCategories } from '@/lib/queries/useCategories'
-import { useAllClothingItems, useDeleteClothingItem, useUpdateClothingItem } from '@/lib/queries/useClothingItems'
+import { useCategories, useCreateCategory } from '@/lib/queries/useCategories'
+import { useAllClothingItems, useCreateClothingItem, useDeleteClothingItem, useUpdateClothingItem } from '@/lib/queries/useClothingItems'
 import { uploadThumbnail } from '@/lib/data/storage'
 import { getErrorMessage } from '@/lib/utils'
 import type { ClothingItem } from '@/types/database'
 
 const MAX_THUMBNAIL_BYTES = 1 * 1024 * 1024
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg']
+const ACCEPTED_IMAGE_ACCEPT = '.png,.jpg,.jpeg,image/png,image/jpeg'
+
+function isAcceptedImageType(file: File) {
+  // Some browsers/OSes report a .jpg file's type as the nonstandard "image/jpg" instead of
+  // "image/jpeg" — checked explicitly rather than trusting the file extension alone.
+  return ACCEPTED_IMAGE_TYPES.includes(file.type)
+}
 
 function ItemRow({ item }: { item: ClothingItem }) {
   const updateItem = useUpdateClothingItem()
@@ -48,6 +57,10 @@ function ItemRow({ item }: { item: ClothingItem }) {
   }
 
   const handleThumbnail = async (file: File) => {
+    if (!isAcceptedImageType(file)) {
+      toast({ title: 'Unsupported image format', description: 'Please choose a PNG, JPG, or JPEG file.', variant: 'error' })
+      return
+    }
     if (file.size > MAX_THUMBNAIL_BYTES) {
       toast({ title: 'Image too large', description: 'Please choose a file under 1MB.', variant: 'error' })
       return
@@ -86,7 +99,7 @@ function ItemRow({ item }: { item: ClothingItem }) {
           )}
           <input
             type="file"
-            accept="image/*"
+            accept={ACCEPTED_IMAGE_ACCEPT}
             className="hidden"
             onChange={(e) => e.target.files?.[0] && handleThumbnail(e.target.files[0])}
           />
@@ -149,12 +162,150 @@ function ItemRow({ item }: { item: ClothingItem }) {
   )
 }
 
+function AddCategoryDialog({ onCreated }: { onCreated: (categoryId: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const createCategory = useCreateCategory()
+  const { toast } = useToast()
+
+  const handleSubmit = () => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    createCategory.mutate(trimmed, {
+      onSuccess: (category) => {
+        toast({ title: 'Category added', variant: 'success' })
+        setName('')
+        setOpen(false)
+        onCreated(category.id)
+      },
+      onError: (err) => toast({ title: 'Failed to add category', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+    })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Plus className="h-4 w-4" /> Add Category
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Category</DialogTitle>
+        </DialogHeader>
+        <div>
+          <Label htmlFor="new-category-name">Category name</Label>
+          <Input
+            id="new-category-name"
+            className="mt-1"
+            placeholder="e.g. Children's Wear"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={!name.trim() || createCategory.isPending}>
+            Add Category
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function AddItemDialog({ categoryId, categoryName }: { categoryId: string; categoryName: string }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [regular, setRegular] = useState('')
+  const [white, setWhite] = useState('')
+  const [express, setExpress] = useState('')
+  const createItem = useCreateClothingItem()
+  const { toast } = useToast()
+
+  const reset = () => {
+    setName('')
+    setRegular('')
+    setWhite('')
+    setExpress('')
+  }
+
+  const handleSubmit = () => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    createItem.mutate(
+      {
+        categoryId,
+        name: trimmed,
+        priceRegular: regular.trim() === '' ? null : Number(regular),
+        priceWhite: white.trim() === '' ? null : Number(white),
+        priceExpress: express.trim() === '' ? null : Number(express),
+      },
+      {
+        onSuccess: () => {
+          toast({ title: 'Item added', variant: 'success' })
+          reset()
+          setOpen(false)
+        },
+        onError: (err) => toast({ title: 'Failed to add item', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+      },
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Plus className="h-4 w-4" /> Add Item
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Item to {categoryName}</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-stack-md">
+          <div>
+            <Label htmlFor="new-item-name">Item name</Label>
+            <Input id="new-item-name" className="mt-1" placeholder="e.g. Kids Shirt" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <Label htmlFor="new-item-regular">Regular</Label>
+              <Input id="new-item-regular" className="mt-1 h-9" placeholder="Not offered" value={regular} onChange={(e) => setRegular(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="new-item-white">White Wash</Label>
+              <Input id="new-item-white" className="mt-1 h-9" placeholder="Not offered" value={white} onChange={(e) => setWhite(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="new-item-express">Express</Label>
+              <Input id="new-item-express" className="mt-1 h-9" placeholder="Not offered" value={express} onChange={(e) => setExpress(e.target.value)} />
+            </div>
+          </div>
+          <p className="text-label-sm text-on-surface-variant">Leave a price blank if that tier isn't offered for this item. A thumbnail can be added after saving.</p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={!name.trim() || createItem.isPending}>
+            Add Item
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function CatalogManager() {
   const { data: categories } = useCategories()
   const { data: items, isLoading } = useAllClothingItems()
   const [categoryId, setCategoryId] = useState('')
 
   const activeCategory = categoryId || categories?.[0]?.id || ''
+  const activeCategoryName = categories?.find((c) => c.id === activeCategory)?.name ?? ''
   const visibleItems = items?.filter((i) => i.category_id === activeCategory)
 
   if (isLoading) {
@@ -169,27 +320,40 @@ function CatalogManager() {
 
   return (
     <div className="flex flex-col gap-stack-md">
-      <div className="flex gap-1 overflow-x-auto scrollbar-none border-b border-outline-variant/40 pb-2">
-        {categories?.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => setCategoryId(cat.id)}
-            className={`shrink-0 rounded px-3 py-1.5 text-label-md ${
-              activeCategory === cat.id ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/40 pb-2">
+        <div className="flex gap-1 overflow-x-auto scrollbar-none">
+          {categories?.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setCategoryId(cat.id)}
+              className={`shrink-0 rounded px-3 py-1.5 text-label-md ${
+                activeCategory === cat.id ? 'bg-primary/10 text-primary' : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+        <AddCategoryDialog onCreated={setCategoryId} />
       </div>
 
-      <p className="text-label-sm text-on-surface-variant">Tap an item's thumbnail to replace it. Max 1MB per image.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-label-sm text-on-surface-variant">
+          Tap an item's thumbnail to replace it. PNG, JPG, or JPEG only, max 1MB per image.
+        </p>
+        {activeCategory && <AddItemDialog categoryId={activeCategory} categoryName={activeCategoryName} />}
+      </div>
 
       <div className="flex flex-col gap-2">
         {visibleItems?.map((item) => (
           <ItemRow key={item.id} item={item} />
         ))}
+        {visibleItems?.length === 0 && (
+          <p className="py-stack-lg text-center text-body-md text-on-surface-variant">
+            No items in this category yet. Use "Add Item" above to create one.
+          </p>
+        )}
       </div>
     </div>
   )

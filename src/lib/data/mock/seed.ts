@@ -25,10 +25,11 @@ export const categories: ClothingCategory[] = [
   { id: 'cat-corporate', name: 'Corporate', display_order: 2 },
   { id: 'cat-native', name: 'Native Wear', display_order: 3 },
   { id: 'cat-womens', name: "Women's", display_order: 4 },
-  { id: 'cat-bedding', name: 'Bedding', display_order: 5 },
-  { id: 'cat-household', name: 'Household', display_order: 6 },
-  { id: 'cat-special', name: 'Special Care', display_order: 7 },
-  { id: 'cat-accessories', name: 'Accessories', display_order: 8 },
+  { id: 'cat-children', name: "Children's Wear", display_order: 5 },
+  { id: 'cat-bedding', name: 'Bedding', display_order: 6 },
+  { id: 'cat-household', name: 'Household', display_order: 7 },
+  { id: 'cat-special', name: 'Special Care', display_order: 8 },
+  { id: 'cat-accessories', name: 'Accessories', display_order: 9 },
 ]
 
 // [name, thumbnailFile, regular, white, express, timeRegular, timeWhite, timeExpress]
@@ -67,6 +68,9 @@ const itemsByCategory: Record<string, ItemRow[]> = {
     ['Skirt and Blouse', 'skirt-and-blouse.png', 800, 1500, 2000, '3-4 days', '2 days', '24h'],
     ['Skirt', 'skirt-or-shorts.png', 400, 500, 1000, '2-3 days', '2 days', '24h'],
   ],
+  // Empty for now — no children's wear items to price yet. Add them from the admin Catalog &
+  // Pricing page once real items/pricing are available.
+  'cat-children': [],
   'cat-bedding': [
     ['Bedspread', 'bedspread.png', 800, 1200, 1800, '3-4 days', '2 days', '24h'],
     ['Duvet', 'duvet.png', 2000, 3000, 4500, '4-5 days', '3 days', '48h'],

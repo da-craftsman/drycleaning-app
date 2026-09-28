@@ -1,11 +1,13 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import {
+  createClothingItemMock,
   deleteClothingItemMock,
   getAllClothingItemsMock,
   getClothingItemMock,
   getClothingItemsMock,
   updateClothingItemMock,
 } from '@/lib/data/mock/items.mock'
+import type { NewClothingItemInput } from '@/lib/data/mock/items.mock'
 import type { ClothingItem } from '@/types/database'
 
 export async function getClothingItems(): Promise<ClothingItem[]> {
@@ -35,6 +37,23 @@ export async function updateClothingItem(
 ): Promise<ClothingItem> {
   if (!isSupabaseConfigured) return updateClothingItemMock(itemId, patch)
   const { data, error } = await supabase!.from('clothing_items').update(patch).eq('id', itemId).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function createClothingItem(input: NewClothingItemInput): Promise<ClothingItem> {
+  if (!isSupabaseConfigured) return createClothingItemMock(input)
+  const { data, error } = await supabase!
+    .from('clothing_items')
+    .insert({
+      category_id: input.categoryId,
+      name: input.name,
+      price_regular: input.priceRegular,
+      price_white: input.priceWhite,
+      price_express: input.priceExpress,
+    })
+    .select()
+    .single()
   if (error) throw error
   return data
 }
