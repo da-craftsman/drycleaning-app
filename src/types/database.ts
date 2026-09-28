@@ -144,6 +144,8 @@ export interface ComplaintTicket {
   status: TicketStatus
   photo_url: string | null
   created_at: string
+  /** The linked order's display_id (e.g. "SRL-..."), denormalized by the data layer for list views — null when order_id is null. */
+  order_display_id?: string | null
 }
 
 export interface TicketMessage {

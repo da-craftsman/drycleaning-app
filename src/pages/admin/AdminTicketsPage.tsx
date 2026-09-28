@@ -45,6 +45,7 @@ export default function AdminTicketsPage() {
                     <p className="text-label-sm capitalize text-on-surface-variant">
                       {ticket.category.replace('_', ' ')} ·{' '}
                       {new Date(ticket.created_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
+                      {ticket.order_display_id && <> · Order {ticket.order_display_id}</>}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

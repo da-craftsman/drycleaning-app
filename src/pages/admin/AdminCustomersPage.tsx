@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { CustomersTable } from '@/features/admin/CustomersTable'
+import { ExportCustomersDialog } from '@/features/admin/ExportCustomersDialog'
 import { formatNaira } from '@/features/catalog/ItemCard'
 import { useAllCustomers } from '@/lib/queries/useCustomers'
 
@@ -23,7 +24,10 @@ export default function AdminCustomersPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-shell px-margin-mobile py-stack-lg md:px-gutter">
-      <h1 className="mb-stack-md text-headline-lg-mobile font-display text-laundry-blue-deep md:text-headline-lg">Customers</h1>
+      <div className="mb-stack-md flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-headline-lg-mobile font-display text-laundry-blue-deep md:text-headline-lg">Customers</h1>
+        {customers && customers.length > 0 && <ExportCustomersDialog customers={customers} />}
+      </div>
 
       {topCustomer && (
         <Card className="mb-stack-md">

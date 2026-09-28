@@ -3,18 +3,27 @@ import { notifyAdminsNewTicketMock, notifyCustomerTicketReplyMock } from '@/lib/
 import type { ComplaintTicket, TicketMessage, TicketStatus } from '@/types/database'
 import type { NewTicketInput } from '@/types/domain'
 
+function withOrderDisplayId(ticket: ComplaintTicket): ComplaintTicket {
+  const order = ticket.order_id ? db.orders.find((o) => o.id === ticket.order_id) : undefined
+  return { ...ticket, order_display_id: order?.display_id ?? null }
+}
+
 export function getTicketsForUserMock(userId: string): Promise<ComplaintTicket[]> {
   return delay(
-    db.complaintTickets.filter((t) => t.user_id === userId).sort((a, b) => b.created_at.localeCompare(a.created_at)),
+    db.complaintTickets
+      .filter((t) => t.user_id === userId)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map(withOrderDisplayId),
   )
 }
 
 export function getAllTicketsMock(): Promise<ComplaintTicket[]> {
-  return delay([...db.complaintTickets].sort((a, b) => b.created_at.localeCompare(a.created_at)))
+  return delay([...db.complaintTickets].sort((a, b) => b.created_at.localeCompare(a.created_at)).map(withOrderDisplayId))
 }
 
 export function getTicketMock(ticketId: string): Promise<ComplaintTicket | null> {
-  return delay(db.complaintTickets.find((t) => t.id === ticketId) ?? null)
+  const ticket = db.complaintTickets.find((t) => t.id === ticketId)
+  return delay(ticket ? withOrderDisplayId(ticket) : null)
 }
 
 export function getTicketMessagesMock(ticketId: string): Promise<TicketMessage[]> {

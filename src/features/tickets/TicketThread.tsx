@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -6,7 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { cn, getErrorMessage } from '@/lib/utils'
+import { formatNaira } from '@/features/catalog/ItemCard'
 import { useTicket, useTicketMessages, useAddTicketMessage, useUpdateTicketStatus } from '@/lib/queries/useTickets'
+import { useOrder } from '@/lib/queries/useOrders'
+import { paths } from '@/routes/paths'
 import type { TicketStatus, UserRole } from '@/types/database'
 
 const statusVariant: Record<TicketStatus, 'primary' | 'success' | 'neutral'> = {
@@ -25,6 +29,7 @@ function TicketThread({
   viewerName: string
 }) {
   const { data: ticket, isLoading } = useTicket(ticketId)
+  const { data: order } = useOrder(ticket?.order_id ?? undefined)
   const { data: messages } = useTicketMessages(ticketId)
   const addMessage = useAddTicketMessage()
   const updateStatus = useUpdateTicketStatus()
@@ -67,6 +72,38 @@ function TicketThread({
         </div>
         <Badge variant={statusVariant[ticket.status]}>{ticket.status.replace('_', ' ')}</Badge>
       </div>
+
+      {ticket.order_id && (
+        <Card>
+          <CardContent className="flex flex-col gap-2 pt-stack-md">
+            <p className="text-label-sm uppercase text-on-surface-variant">Related Order</p>
+            {order ? (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-label-md font-bold text-on-surface">{order.display_id}</p>
+                  <Badge variant="neutral" className="capitalize">
+                    {order.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <p className="text-body-md text-on-surface-variant">
+                  {new Date(order.created_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })} ·{' '}
+                  {formatNaira(order.total)} · {order.payment_method === 'paystack' ? 'Paystack' : 'Cash on Delivery'} (
+                  {order.payment_status})
+                </p>
+                <p className="text-body-md text-on-surface-variant">{order.address}</p>
+                <Link
+                  to={viewerRole === 'admin' ? paths.adminOrder(order.id) : paths.accountOrder(order.id)}
+                  className="text-label-md font-bold text-primary hover:underline"
+                >
+                  View full order details →
+                </Link>
+              </>
+            ) : (
+              <Skeleton className="h-6 w-32" />
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {ticket.photo_url && (
         <img src={ticket.photo_url} alt="Ticket attachment" className="h-32 w-32 rounded border border-outline-variant/40 object-cover" />

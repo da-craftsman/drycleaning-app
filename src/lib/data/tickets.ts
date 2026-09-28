@@ -11,29 +11,42 @@ import {
 import type { ComplaintTicket, TicketMessage, TicketStatus, UserRole } from '@/types/database'
 import type { NewTicketInput } from '@/types/domain'
 
+type TicketWithOrder = ComplaintTicket & { order: { display_id: string } | null }
+
+function flattenOrderDisplayId({ order, ...ticket }: TicketWithOrder): ComplaintTicket {
+  return { ...ticket, order_display_id: order?.display_id ?? null }
+}
+
 export async function getTicketsForUser(userId: string): Promise<ComplaintTicket[]> {
   if (!isSupabaseConfigured) return getTicketsForUserMock(userId)
   const { data, error } = await supabase!
     .from('complaint_tickets')
-    .select('*')
+    .select('*, order:orders(display_id)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data
+  return (data as TicketWithOrder[]).map(flattenOrderDisplayId)
 }
 
 export async function getAllTickets(): Promise<ComplaintTicket[]> {
   if (!isSupabaseConfigured) return getAllTicketsMock()
-  const { data, error } = await supabase!.from('complaint_tickets').select('*').order('created_at', { ascending: false })
+  const { data, error } = await supabase!
+    .from('complaint_tickets')
+    .select('*, order:orders(display_id)')
+    .order('created_at', { ascending: false })
   if (error) throw error
-  return data
+  return (data as TicketWithOrder[]).map(flattenOrderDisplayId)
 }
 
 export async function getTicket(ticketId: string): Promise<ComplaintTicket | null> {
   if (!isSupabaseConfigured) return getTicketMock(ticketId)
-  const { data, error } = await supabase!.from('complaint_tickets').select('*').eq('id', ticketId).maybeSingle()
+  const { data, error } = await supabase!
+    .from('complaint_tickets')
+    .select('*, order:orders(display_id)')
+    .eq('id', ticketId)
+    .maybeSingle()
   if (error) throw error
-  return data
+  return data && flattenOrderDisplayId(data as TicketWithOrder)
 }
 
 export async function getTicketMessages(ticketId: string): Promise<TicketMessage[]> {
