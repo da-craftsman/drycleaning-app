@@ -1,3 +1,4 @@
+import { Repeat, ShoppingBag, Truck, Wallet } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatNaira } from '@/features/catalog/ItemCard'
@@ -36,19 +37,24 @@ function MetricsCards({ orders, isLoading }: { orders?: Order[]; isLoading: bool
   const repeatCustomers = [...userOrderCounts.values()].filter((n) => n > 1).length
 
   const stats = [
-    { label: "This Month's Revenue", value: formatNaira(monthlyRevenue) },
-    { label: "Today's Orders", value: String(todaysOrders) },
-    { label: 'Pending Logistics', value: String(pendingLogistics) },
-    { label: 'Repeat Customers', value: String(repeatCustomers) },
+    { label: "This Month's Revenue", value: formatNaira(monthlyRevenue), icon: Wallet },
+    { label: "Today's Orders", value: String(todaysOrders), icon: ShoppingBag },
+    { label: 'Pending Logistics', value: String(pendingLogistics), icon: Truck },
+    { label: 'Repeat Customers', value: String(repeatCustomers), icon: Repeat },
   ]
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {stats.map((stat) => (
-        <Card key={stat.label}>
-          <CardContent className="pt-stack-md">
-            <p className="text-label-sm uppercase text-on-surface-variant">{stat.label}</p>
-            <p className="mt-1 text-headline-md font-display text-on-surface">{stat.value}</p>
+      {stats.map(({ label, value, icon: Icon }) => (
+        <Card key={label}>
+          <CardContent className="flex items-start justify-between gap-2 pt-stack-md">
+            <div className="min-w-0">
+              <p className="text-label-sm uppercase text-on-surface-variant">{label}</p>
+              <p className="mt-1 truncate text-headline-md font-display text-on-surface">{value}</p>
+            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Icon className="h-4 w-4" />
+            </span>
           </CardContent>
         </Card>
       ))}

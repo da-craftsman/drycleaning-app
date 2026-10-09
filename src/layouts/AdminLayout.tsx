@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadNotifications } from '@/lib/queries/useNotifications'
-import { adminSidebarLinks } from '@/lib/adminNav'
+import { visibleAdminNavSections } from '@/lib/adminNav'
 import { paths } from '@/routes/paths'
 import { cn } from '@/lib/utils'
 
@@ -18,7 +18,7 @@ function AdminLayout() {
   const { profile, signOut, hasPermission, isSuperAdmin } = useAuth()
   const navigate = useNavigate()
   const { data: unread } = useUnreadNotifications(profile?.id)
-  const visibleLinks = adminSidebarLinks.filter(
+  const sections = visibleAdminNavSections(
     (link) => (!link.permission || hasPermission(link.permission)) && (!link.superAdminOnly || isSuperAdmin),
   )
 
@@ -34,29 +34,36 @@ function AdminLayout() {
           <Link to={paths.admin} className="flex h-16 shrink-0 items-center border-b border-outline-variant/40 px-stack-md">
             <Logo />
           </Link>
-          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-stack-md" aria-label="Admin">
-            {visibleLinks.map(({ to, label, icon: Icon, end, dotType }) => {
-              const showDot = dotType ? (unread ?? []).some((n) => n.type === dotType) : false
-              return (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={end}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 rounded px-3 py-2.5 text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface',
-                      isActive && 'bg-primary/10 text-primary',
-                    )
-                  }
-                >
-                  <span className="relative flex">
-                    <Icon className="h-5 w-5" />
-                    {showDot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-error" />}
-                  </span>
-                  {label}
-                </NavLink>
-              )
-            })}
+          <nav className="flex flex-1 flex-col gap-stack-md overflow-y-auto p-stack-md" aria-label="Admin">
+            {sections.map((section) => (
+              <div key={section.title ?? 'top'} className="flex flex-col gap-0.5">
+                {section.title && (
+                  <p className="px-3 pb-1 text-label-sm font-bold uppercase tracking-wide text-outline">{section.title}</p>
+                )}
+                {section.links.map(({ to, label, icon: Icon, end, dotType }) => {
+                  const showDot = dotType ? (unread ?? []).some((n) => n.type === dotType) : false
+                  return (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      end={end}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 rounded px-3 py-2 text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface',
+                          isActive && 'bg-primary/10 font-bold text-primary',
+                        )
+                      }
+                    >
+                      <span className="relative flex">
+                        <Icon className="h-5 w-5" />
+                        {showDot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-error" />}
+                      </span>
+                      {label}
+                    </NavLink>
+                  )
+                })}
+              </div>
+            ))}
           </nav>
           <div className="border-t border-outline-variant/40 p-stack-md">
             {profile && <p className="mb-2 truncate text-label-sm text-on-surface-variant">{profile.full_name}</p>}

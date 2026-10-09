@@ -1,16 +1,18 @@
 import { useState } from 'react'
-import { Plus, Shirt, Trash2 } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Eye, EyeOff, Pencil, Plus, Shirt, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useToast } from '@/hooks/use-toast'
-import { useCategories, useCreateCategory } from '@/lib/queries/useCategories'
+import { useCategories, useCreateCategory, useUpdateCategory } from '@/lib/queries/useCategories'
 import { useAllClothingItems, useCreateClothingItem, useDeleteClothingItem, useUpdateClothingItem } from '@/lib/queries/useClothingItems'
 import { uploadThumbnail } from '@/lib/data/storage'
-import { getErrorMessage } from '@/lib/utils'
+import { cn, getErrorMessage } from '@/lib/utils'
 import type { ClothingItem } from '@/types/database'
 
 const MAX_THUMBNAIL_BYTES = 1 * 1024 * 1024
@@ -23,6 +25,40 @@ function isAcceptedImageType(file: File) {
   return ACCEPTED_IMAGE_TYPES.includes(file.type)
 }
 
+function IconAction({
+  label,
+  onClick,
+  disabled,
+  className,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  disabled?: boolean
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          aria-label={label}
+          className={cn(
+            'flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface disabled:opacity-50',
+            className,
+          )}
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
 function ItemRow({ item }: { item: ClothingItem }) {
   const updateItem = useUpdateClothingItem()
   const deleteItem = useDeleteClothingItem()
@@ -30,20 +66,37 @@ function ItemRow({ item }: { item: ClothingItem }) {
   const [regular, setRegular] = useState(item.price_regular === null ? '' : String(item.price_regular))
   const [white, setWhite] = useState(item.price_white === null ? '' : String(item.price_white))
   const [express, setExpress] = useState(item.price_express === null ? '' : String(item.price_express))
+  const [editingName, setEditingName] = useState(false)
+  const [name, setName] = useState(item.name)
+
+  const toggleEditName = () => {
+    if (editingName) setName(item.name)
+    setEditingName(!editingName)
+  }
 
   const save = () => {
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      toast({ title: 'Item name is required', variant: 'error' })
+      return
+    }
     updateItem.mutate(
       {
         itemId: item.id,
         patch: {
+          // Past orders keep their own copy of the item name (order_items.item_name), so a rename only affects the catalog going forward.
+          name: trimmedName,
           price_regular: regular.trim() === '' ? null : Number(regular),
           price_white: white.trim() === '' ? null : Number(white),
           price_express: express.trim() === '' ? null : Number(express),
         },
       },
       {
-        onSuccess: () => toast({ title: 'Prices updated', variant: 'success' }),
-        onError: (err) => toast({ title: 'Failed to update prices', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+        onSuccess: () => {
+          setEditingName(false)
+          toast({ title: 'Item updated', variant: 'success' })
+        },
+        onError: (err) => toast({ title: 'Failed to update item', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
       },
     )
   }
@@ -105,7 +158,23 @@ function ItemRow({ item }: { item: ClothingItem }) {
           />
         </label>
 
-        <p className="min-w-32 text-label-md font-bold normal-case text-on-surface">{item.name}</p>
+        {editingName ? (
+          <Input
+            aria-label="Item name"
+            className="h-9 min-w-32 sm:w-44"
+            value={name}
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') save()
+              if (e.key === 'Escape') toggleEditName()
+            }}
+          />
+        ) : (
+          <p className={cn('min-w-32 text-label-md font-bold normal-case', item.is_active ? 'text-on-surface' : 'text-on-surface-variant line-through')}>
+            {item.name}
+          </p>
+        )}
 
         <div className="grid flex-1 grid-cols-3 gap-2">
           <div>
@@ -140,22 +209,33 @@ function ItemRow({ item }: { item: ClothingItem }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={save} disabled={updateItem.isPending}>
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="outline" onClick={save} disabled={updateItem.isPending} className="mr-1">
             Save
           </Button>
-          <Button size="sm" variant={item.is_active ? 'subtle' : 'express'} onClick={toggleVisibility}>
-            {item.is_active ? 'Visible' : 'Hidden'}
-          </Button>
-          <button
-            type="button"
+          <IconAction
+            label={item.is_active ? 'Visible to customers — click to hide it from the catalog' : 'Hidden from customers — click to make it visible again'}
+            onClick={toggleVisibility}
+            disabled={updateItem.isPending}
+            className={item.is_active ? undefined : 'text-error hover:bg-error-container hover:text-on-error-container'}
+          >
+            {item.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          </IconAction>
+          <IconAction
+            label={editingName ? 'Cancel renaming' : 'Rename this item'}
+            onClick={toggleEditName}
+            className={editingName ? 'bg-primary/10 text-primary' : undefined}
+          >
+            <Pencil className="h-4 w-4" />
+          </IconAction>
+          <IconAction
+            label="Delete this item permanently"
             onClick={remove}
             disabled={deleteItem.isPending}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-error-container hover:text-on-error-container"
-            aria-label={`Delete ${item.name}`}
+            className="hover:bg-error-container hover:text-on-error-container"
           >
             <Trash2 className="h-4 w-4" />
-          </button>
+          </IconAction>
         </div>
       </CardContent>
     </Card>
@@ -209,6 +289,69 @@ function AddCategoryDialog({ onCreated }: { onCreated: (categoryId: string) => v
           </Button>
           <Button onClick={handleSubmit} disabled={!name.trim() || createCategory.isPending}>
             Add Category
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditCategoryDialog({ categoryId, currentName }: { categoryId: string; currentName: string }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState(currentName)
+  const updateCategory = useUpdateCategory()
+  const { toast } = useToast()
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) setName(currentName)
+    setOpen(next)
+  }
+
+  const handleSubmit = () => {
+    const trimmed = name.trim()
+    if (!trimmed || trimmed === currentName) return
+    updateCategory.mutate(
+      { categoryId, name: trimmed },
+      {
+        onSuccess: () => {
+          toast({ title: 'Category updated', variant: 'success' })
+          setOpen(false)
+        },
+        onError: (err) => toast({ title: 'Failed to update category', description: getErrorMessage(err, 'Please try again.'), variant: 'error' }),
+      },
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Pencil className="h-4 w-4" /> Edit Category
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Category</DialogTitle>
+        </DialogHeader>
+        <div>
+          <Label htmlFor="edit-category-name">Category name</Label>
+          <Input
+            id="edit-category-name"
+            className="mt-1"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          />
+          <p className="mt-2 text-label-sm text-on-surface-variant">
+            Items in this category and past orders are unaffected — only the name customers see changes.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={!name.trim() || name.trim() === currentName || updateCategory.isPending}>
+            {updateCategory.isPending ? 'Saving…' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -342,7 +485,12 @@ function CatalogManager() {
         <p className="text-label-sm text-on-surface-variant">
           Tap an item's thumbnail to replace it. PNG, JPG, or JPEG only, max 1MB per image.
         </p>
-        {activeCategory && <AddItemDialog categoryId={activeCategory} categoryName={activeCategoryName} />}
+        {activeCategory && (
+          <div className="flex flex-wrap gap-2">
+            <EditCategoryDialog key={activeCategory} categoryId={activeCategory} currentName={activeCategoryName} />
+            <AddItemDialog categoryId={activeCategory} categoryName={activeCategoryName} />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">

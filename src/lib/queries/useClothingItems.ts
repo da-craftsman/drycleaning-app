@@ -36,7 +36,7 @@ export function useUpdateClothingItem() {
       patch,
     }: {
       itemId: string
-      patch: Partial<Pick<ClothingItem, 'price_regular' | 'price_white' | 'price_express' | 'is_active' | 'thumbnail_url'>>
+      patch: Partial<Pick<ClothingItem, 'name' | 'price_regular' | 'price_white' | 'price_express' | 'is_active' | 'thumbnail_url'>>
     }) => updateClothingItem(itemId, patch),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.items })

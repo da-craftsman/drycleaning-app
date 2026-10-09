@@ -33,7 +33,7 @@ export async function getClothingItem(itemId: string): Promise<ClothingItem | nu
 
 export async function updateClothingItem(
   itemId: string,
-  patch: Partial<Pick<ClothingItem, 'price_regular' | 'price_white' | 'price_express' | 'is_active' | 'thumbnail_url'>>,
+  patch: Partial<Pick<ClothingItem, 'name' | 'price_regular' | 'price_white' | 'price_express' | 'is_active' | 'thumbnail_url'>>,
 ): Promise<ClothingItem> {
   if (!isSupabaseConfigured) return updateClothingItemMock(itemId, patch)
   const { data, error } = await supabase!.from('clothing_items').update(patch).eq('id', itemId).select().single()

@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/brand/Logo'
 import { useAuth } from '@/hooks/useAuth'
 import { useUnreadNotifications } from '@/lib/queries/useNotifications'
-import { adminSidebarLinks } from '@/lib/adminNav'
-import { cn } from '@/lib/utils'
+import { visibleAdminNavSections } from '@/lib/adminNav'
 
 /** The admin console's mobile menu sheet — opened from the bottom nav's Menu tab, listing every
  * section the signed-in admin has access to (same permission filtering as the desktop sidebar). */
@@ -15,7 +14,7 @@ function AdminMobileMenu({ open, onOpenChange }: { open: boolean; onOpenChange: 
   const { data: unread } = useUnreadNotifications(profile?.id)
   const navigate = useNavigate()
 
-  const visibleLinks = adminSidebarLinks.filter(
+  const sections = visibleAdminNavSections(
     (link) => (!link.permission || hasPermission(link.permission)) && (!link.superAdminOnly || isSuperAdmin),
   )
 
@@ -40,26 +39,31 @@ function AdminMobileMenu({ open, onOpenChange }: { open: boolean; onOpenChange: 
           </div>
         )}
 
-        <nav className="flex flex-col gap-1" aria-label="Admin">
-          {visibleLinks.map(({ to, label, icon: Icon, dotType }) => {
-            const showDot = dotType ? (unread ?? []).some((n) => n.type === dotType) : false
-            return (
-              <Link
-                key={to}
-                to={to}
-                onClick={handleNavigate}
-                className={cn(
-                  'flex items-center gap-3 rounded px-3 py-2.5 text-label-md text-on-surface transition-colors hover:bg-surface-container-low',
-                )}
-              >
-                <span className="relative flex">
-                  <Icon className="h-5 w-5 text-on-surface-variant" />
-                  {showDot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-error" />}
-                </span>
-                {label}
-              </Link>
-            )
-          })}
+        <nav className="flex flex-col gap-stack-md" aria-label="Admin">
+          {sections.map((section) => (
+            <div key={section.title ?? 'top'} className="flex flex-col gap-0.5">
+              {section.title && (
+                <p className="px-3 pb-1 text-label-sm font-bold uppercase tracking-wide text-outline">{section.title}</p>
+              )}
+              {section.links.map(({ to, label, icon: Icon, dotType }) => {
+                const showDot = dotType ? (unread ?? []).some((n) => n.type === dotType) : false
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={handleNavigate}
+                    className="flex items-center gap-3 rounded px-3 py-2.5 text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+                  >
+                    <span className="relative flex">
+                      <Icon className="h-5 w-5 text-on-surface-variant" />
+                      {showDot && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-error" />}
+                    </span>
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="mt-stack-md border-t border-outline-variant/40 pt-stack-md">

@@ -1,10 +1,21 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
-import { createClothingCategoryMock, getClothingCategoriesMock } from '@/lib/data/mock/categories.mock'
+import {
+  createClothingCategoryMock,
+  getClothingCategoriesMock,
+  updateClothingCategoryMock,
+} from '@/lib/data/mock/categories.mock'
 import type { ClothingCategory } from '@/types/database'
 
 export async function getClothingCategories(): Promise<ClothingCategory[]> {
   if (!isSupabaseConfigured) return getClothingCategoriesMock()
   const { data, error } = await supabase!.from('clothing_categories').select('*').order('display_order')
+  if (error) throw error
+  return data
+}
+
+export async function updateClothingCategory(categoryId: string, name: string): Promise<ClothingCategory> {
+  if (!isSupabaseConfigured) return updateClothingCategoryMock(categoryId, name)
+  const { data, error } = await supabase!.from('clothing_categories').update({ name }).eq('id', categoryId).select().single()
   if (error) throw error
   return data
 }
