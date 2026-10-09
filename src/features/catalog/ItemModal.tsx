@@ -47,7 +47,7 @@ function ItemModal({
   const handleAdd = () => {
     const unitPrice = tierPrice(activeItem, tier)
     const readyIn = tierTime(activeItem, tier)
-    if (unitPrice === null || readyIn === null) return
+    if (unitPrice === null) return
     addItem({
       itemId: activeItem.id,
       name: activeItem.name,

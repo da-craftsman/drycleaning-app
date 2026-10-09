@@ -24,7 +24,7 @@ function CartLineItem({ line, useStore = useCartStore }: { line: CartItem; useSt
     if (!fullItem) return
     const unitPrice = tierPrice(fullItem, tier)
     const readyIn = tierTime(fullItem, tier)
-    if (unitPrice === null || readyIn === null) return
+    if (unitPrice === null) return
     updateTier(line.cartItemId, tier, unitPrice, readyIn)
   }
 
