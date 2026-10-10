@@ -19,16 +19,34 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ALLOWED_PERMISSIONS = ['orders', 'customers', 'catalog', 'zones', 'banner', 'tickets', 'blog', 'walkin']
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+// Only the app's own sites may call this from a browser (server-to-server calls send no Origin and
+// aren't affected). Add a new domain here if the site ever moves.
+const ALLOWED_ORIGINS = new Set([
+  'https://shalahrexlaundry.ng',
+  'https://www.shalahrexlaundry.ng',
+  'https://drycleaning-app-phi.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+])
+
+function withCors(req: Request, res: Response): Response {
+  const origin = req.headers.get('Origin')
+  if (origin && ALLOWED_ORIGINS.has(origin)) res.headers.set('Access-Control-Allow-Origin', origin)
+  res.headers.append('Vary', 'Origin')
+  return res
 }
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req) => withCors(req, await handle(req)))
+
+async function handle(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
@@ -103,4 +121,4 @@ Deno.serve(async (req) => {
   }
 
   return json(profile)
-})
+}

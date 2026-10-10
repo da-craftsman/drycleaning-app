@@ -24,13 +24,40 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+// Only the app's own sites may call this from a browser (server-to-server calls send no Origin and
+// aren't affected). Add a new domain here if the site ever moves.
+const ALLOWED_ORIGINS = new Set([
+  'https://shalahrexlaundry.ng',
+  'https://www.shalahrexlaundry.ng',
+  'https://drycleaning-app-phi.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+])
+
+function withCors(req: Request, res: Response): Response {
+  const origin = req.headers.get('Origin')
+  if (origin && ALLOWED_ORIGINS.has(origin)) res.headers.set('Access-Control-Allow-Origin', origin)
+  res.headers.append('Vary', 'Origin')
+  return res
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
+}
+
+/** Customer-entered text (names, addresses, ticket text) goes into email HTML — escape it so it
+ * can't inject markup or links into the inbox that opens the email. */
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 function formatNaira(amount: number) {
@@ -49,7 +76,9 @@ const paymentMethodLabels: Record<string, string> = {
   cash_on_delivery: 'Cash on delivery',
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req) => withCors(req, await handle(req)))
+
+async function handle(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
   if (!RESEND_API_KEY) return json({ error: 'RESEND_API_KEY is not configured' }, 500)
@@ -95,7 +124,7 @@ Deno.serve(async (req) => {
     .map(
       (line) => `
         <tr>
-          <td style="padding:6px 0;color:#374151;">${line.quantity} × ${line.item_name} (${line.service_tier})</td>
+          <td style="padding:6px 0;color:#374151;">${line.quantity} × ${escapeHtml(line.item_name)} (${line.service_tier})</td>
           <td style="padding:6px 0;text-align:right;color:#111827;font-weight:600;">${formatNaira(line.line_total)}</td>
         </tr>`,
     )
@@ -104,7 +133,7 @@ Deno.serve(async (req) => {
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;color:#111827;">
       <h2 style="color:#0b3d91;">Order confirmed</h2>
-      <p>Hi ${profile.full_name || 'there'},</p>
+      <p>Hi ${escapeHtml(profile.full_name || 'there')},</p>
       <p>Thanks for your order! Here's a summary of <strong>${order.display_id}</strong>:</p>
       <table style="width:100%;border-collapse:collapse;margin:16px 0;">
         ${itemsRows}
@@ -114,7 +143,7 @@ Deno.serve(async (req) => {
       <p style="color:#374151;">
         <strong>Logistics:</strong> ${logisticsLabels[order.logistics_type] ?? order.logistics_type}<br/>
         <strong>Payment:</strong> ${paymentMethodLabels[order.payment_method] ?? order.payment_method}<br/>
-        <strong>Delivery address:</strong> ${order.address}
+        <strong>Delivery address:</strong> ${escapeHtml(order.address)}
       </p>
       <p style="margin:24px 0;">
         <a href="${receiptUrl}" style="background:#0b3d91;color:#ffffff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;">
@@ -149,4 +178,4 @@ Deno.serve(async (req) => {
   await adminClient.from('orders').update({ confirmation_email_sent_at: new Date().toISOString() }).eq('id', orderId)
 
   return json({ sent: true })
-})
+}
