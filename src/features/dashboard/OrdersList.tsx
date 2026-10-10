@@ -45,14 +45,14 @@ function OrdersList({
         <Link key={order.id} to={linkTo(order.id)}>
           <Card className="transition-shadow hover:shadow-soft-lift">
             <CardContent className="flex items-center justify-between gap-3 pt-stack-md">
-              <div className="flex flex-col gap-1">
+              <div className="flex shrink-0 flex-col gap-1">
                 <p className="text-label-md font-bold normal-case text-on-surface">{order.display_id}</p>
                 <p className="text-label-sm text-on-surface-variant">
                   {new Date(order.created_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1.5">
+              <div className="flex min-w-0 flex-col items-end gap-1">
+                <div className="flex flex-wrap items-center justify-end gap-1.5">
                   {order.hasMixedExpress && (
                     <Badge variant="urgent">
                       <Zap className="h-3 w-3" /> Mixed Express

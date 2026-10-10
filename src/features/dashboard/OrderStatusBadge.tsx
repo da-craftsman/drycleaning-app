@@ -14,9 +14,13 @@ const labels: Record<OrderStatus, string> = {
   cancelled: 'Cancelled',
 }
 
-function OrderStatusBadge({ status }: { status: OrderStatus }) {
+function OrderStatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
   const variant = status === 'completed' ? 'success' : status === 'cancelled' ? 'error' : 'primary'
-  return <Badge variant={variant}>{labels[status]}</Badge>
+  return (
+    <Badge variant={variant} className={className}>
+      {labels[status]}
+    </Badge>
+  )
 }
 
 export { OrderStatusBadge, labels as orderStatusLabels }
