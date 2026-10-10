@@ -16,6 +16,10 @@ if (dsn) {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
+    // Ad-blockers and privacy extensions cut requests to *.sentry.io, so on the live site errors are
+    // sent to our own domain and vercel.json's /api/ev rewrite forwards them to Sentry. (Dev has no
+    // Vercel rewrites, so it talks to Sentry directly.) If the DSN/project changes, update that rewrite.
+    tunnel: import.meta.env.PROD ? '/api/ev' : undefined,
     // Customer names, phones and addresses are on most pages — don't attach user info, cookies,
     // headers, request bodies or query strings, and identify users by id only (below).
     dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
