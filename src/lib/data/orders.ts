@@ -1,5 +1,5 @@
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
-import { generateOrderDisplayId, getFunctionErrorMessage } from '@/lib/utils'
+import { getFunctionErrorMessage } from '@/lib/utils'
 import { isMixedExpress } from '@/lib/orderTiers'
 import {
   createOrderMock,
@@ -84,47 +84,24 @@ export async function getOrderStatusHistory(orderId: string): Promise<OrderStatu
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   if (!isSupabaseConfigured) return createOrderMock(input)
 
-  // Best done as a single Postgres RPC/Edge Function for atomicity; sequential
-  // inserts here as a straightforward default once real credentials are wired up.
-  const subtotal = input.items.reduce((sum, li) => sum + li.unitPrice * li.quantity, 0)
-  const { data: order, error: orderError } = await supabase!
-    .from('orders')
-    .insert({
-      user_id: input.userId,
-      status: 'order_received',
-      logistics_type: input.logisticsType,
-      zone_id: input.zoneId,
-      address: input.details.address,
-      phone: input.details.phone,
-      whatsapp: input.details.whatsapp || null,
-      special_instructions: input.details.specialInstructions || null,
-      subtotal,
-      delivery_fee: input.deliveryFee,
-      total: subtotal + input.deliveryFee,
-      payment_method: input.paymentMethod,
-      // Always starts pending, regardless of method — RLS only allows customers to insert/update
-      // orders while payment_status stays 'pending'. Only the verify-payment Edge Function (service
-      // role, after confirming with Paystack) can flip it to 'paid'. Cash-on-delivery orders stay
-      // pending until an admin marks them paid on delivery.
-      payment_status: 'pending',
-      display_id: generateOrderDisplayId(),
-    })
-    .select()
-    .single()
+  // Prices, the delivery fee, the order number and the initial status-history row are all
+  // worked out inside the create_order database function from the live catalog and zone tables —
+  // the browser only says which items, tiers and quantities. Direct inserts into orders /
+  // order_items are blocked by RLS, so a tampered request can't set its own total. The order
+  // always starts payment_status 'pending'; only verify-payment / paystack-webhook (service role,
+  // after confirming with Paystack) or an admin collecting cash can mark it paid.
+  const { data: order, error: orderError } = await supabase!.rpc('create_order', {
+    p_user_id: input.userId,
+    p_items: input.items.map((line) => ({ item_id: line.itemId, tier: line.tier, quantity: line.quantity })),
+    p_logistics_type: input.logisticsType,
+    p_zone_id: input.zoneId,
+    p_address: input.details.address,
+    p_phone: input.details.phone,
+    p_whatsapp: input.details.whatsapp || null,
+    p_special_instructions: input.details.specialInstructions || null,
+    p_payment_method: input.paymentMethod,
+  })
   if (orderError) throw orderError
-
-  const { error: itemsError } = await supabase!.from('order_items').insert(
-    input.items.map((line) => ({
-      order_id: order.id,
-      item_id: line.itemId,
-      item_name: line.name,
-      service_tier: line.tier,
-      quantity: line.quantity,
-      unit_price: line.unitPrice,
-      line_total: line.unitPrice * line.quantity,
-    })),
-  )
-  if (itemsError) throw itemsError
 
   if (input.imageDataUrls.length > 0) {
     const { error: imagesError } = await supabase!
@@ -132,8 +109,6 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
       .insert(input.imageDataUrls.map((url) => ({ order_id: order.id, image_url: url })))
     if (imagesError) throw imagesError
   }
-
-  await supabase!.from('order_status_history').insert({ order_id: order.id, status: order.status })
 
   return order
 }

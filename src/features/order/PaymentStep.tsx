@@ -28,7 +28,7 @@ function PaymentStep({
   email: string;
   customerName: string;
   ensureOrder: (method: PaymentMethod) => Promise<Order>;
-  onCashOnDelivery: () => void;
+  onCashOnDelivery: () => Promise<void>;
   onPaystackVerified: (order: Order) => void;
   submitting: boolean;
   setSubmitting: (value: boolean) => void;
@@ -37,7 +37,7 @@ function PaymentStep({
   const setPaymentMethod = useCheckoutStore((s) => s.setPaymentMethod);
   const logisticsType = useCheckoutStore((s) => s.logisticsType);
   const cartItems = useCartStore((s) => s.items);
-  const [paystackError, setPaystackError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [mixedExpressAcknowledged, setMixedExpressAcknowledged] =
     useState(false);
 
@@ -47,8 +47,19 @@ function PaymentStep({
   const showMixedExpressNotice =
     hasHomeDelivery && isMixedExpress(cartItems.map((i) => i.tier));
 
+  const handleCashOnDelivery = async () => {
+    setPaymentError(null);
+    try {
+      await onCashOnDelivery();
+    } catch (err) {
+      setPaymentError(
+        getErrorMessage(err, 'Something went wrong placing your order.'),
+      );
+    }
+  };
+
   const handlePaystack = async () => {
-    setPaystackError(null);
+    setPaymentError(null);
     setSubmitting(true);
     try {
       const order = await ensureOrder('paystack');
@@ -98,7 +109,7 @@ function PaymentStep({
               throw new Error(result.error ?? 'Payment could not be verified.');
             onPaystackVerified(order);
           } catch (err) {
-            setPaystackError(
+            setPaymentError(
               getErrorMessage(
                 err,
                 'Payment could not be verified. If you were charged, contact support with your order reference.',
@@ -108,13 +119,13 @@ function PaymentStep({
           }
         },
         onError: (err) => {
-          setPaystackError(err.message);
+          setPaymentError(err.message);
           setSubmitting(false);
         },
         onCancel: () => setSubmitting(false),
       });
     } catch (err) {
-      setPaystackError(
+      setPaymentError(
         getErrorMessage(err, 'Something went wrong starting payment.'),
       );
       setSubmitting(false);
@@ -163,8 +174,8 @@ function PaymentStep({
         </SelectionCard>
       </div>
 
-      {paystackError && (
-        <p className='text-label-md text-error'>{paystackError}</p>
+      {paymentError && (
+        <p className='text-label-md text-error'>{paymentError}</p>
       )}
 
       {paymentMethod === 'paystack' && !paystackKey && (
@@ -212,7 +223,7 @@ function PaymentStep({
             submitting || (showMixedExpressNotice && !mixedExpressAcknowledged)
           }
           onClick={
-            paymentMethod === 'paystack' ? handlePaystack : onCashOnDelivery
+            paymentMethod === 'paystack' ? handlePaystack : handleCashOnDelivery
           }
           className='w-full'
         >
