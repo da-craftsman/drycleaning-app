@@ -30,8 +30,8 @@
           "value": "camera=(), microphone=(), geolocation=()"
         },
         {
-          "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://*.paystack.co https://*.paystack.com https://applepay.cdn-apple.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://lkqlnjlredsnwhyrmknh.supabase.co wss://lkqlnjlredsnwhyrmknh.supabase.co https://*.paystack.co https://*.paystack.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com https://*.paystack.co https://*.paystack.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'"
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://*.paystack.co https://*.paystack.com https://applepay.cdn-apple.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://lkqlnjlredsnwhyrmknh.supabase.co wss://lkqlnjlredsnwhyrmknh.supabase.co https://*.paystack.co https://*.paystack.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io; frame-src https://challenges.cloudflare.com https://*.paystack.co https://*.paystack.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; report-uri https://o4512229424168960.ingest.de.sentry.io/api/4512229624578128/security/?sentry_key=821a22a0e14e0ca3f4fed594b18d802b"
         }
       ]
     }
