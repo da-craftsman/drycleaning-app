@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useBlogPostBySlug } from '@/lib/queries/useBlogPosts'
 import { paths } from '@/routes/paths'
+import { useNoIndex, useSeo } from '@/hooks/useSeo'
+import { blogPostSeo } from '@/lib/seo'
+import { services } from '@/lib/services'
+import type { BlogPost } from '@/types/database'
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -20,15 +24,30 @@ export default function BlogPostPage() {
   }
 
   if (!post) {
-    return (
-      <div className="mx-auto w-full min-w-0 max-w-2xl px-margin-mobile py-stack-lg text-center">
-        <p className="text-body-lg text-on-surface-variant">We couldn't find that article.</p>
-        <Link to={paths.blog} className="mt-stack-sm inline-block font-semibold text-primary">
-          Back to Blog
-        </Link>
-      </div>
-    )
+    return <BlogPostNotFound slug={slug} />
   }
+
+  return <BlogArticle post={post} />
+}
+
+function BlogPostNotFound({ slug }: { slug: string | undefined }) {
+  useNoIndex('Article Not Found | Shalah Rex Laundry', `/blog/${slug ?? ''}`)
+  return (
+    <div className="mx-auto w-full min-w-0 max-w-2xl px-margin-mobile py-stack-lg text-center">
+      <p className="text-body-lg text-on-surface-variant">We couldn't find that article.</p>
+      <Link to={paths.blog} className="mt-stack-sm inline-block font-semibold text-primary">
+        Back to Blog
+      </Link>
+    </div>
+  )
+}
+
+/** Services linked under every article, keeps readers (and crawlers) moving to the pages that convert. */
+const relatedServiceSlugs = ['pickup-dropoff', 'clothing-care', 'dry-cleaning-ironing']
+
+function BlogArticle({ post }: { post: BlogPost }) {
+  useSeo(blogPostSeo(post))
+  const relatedServices = services.filter((s) => relatedServiceSlugs.includes(s.slug))
 
   return (
     <article className="mx-auto w-full min-w-0 max-w-2xl px-margin-mobile py-stack-lg md:px-gutter">
@@ -37,7 +56,7 @@ export default function BlogPostPage() {
       </Link>
 
       {post.feature_image ? (
-        <img src={post.feature_image} alt="" className="mt-stack-md aspect-video w-full rounded-lg object-cover" />
+        <img src={post.feature_image} alt={post.title} className="mt-stack-md aspect-video w-full rounded-lg object-cover" />
       ) : (
         <div className="mt-stack-md flex aspect-video items-center justify-center rounded-lg bg-surface-container-low">
           <Newspaper className="h-10 w-10 text-outline" strokeWidth={1.5} />
@@ -47,7 +66,12 @@ export default function BlogPostPage() {
       <p className="mt-stack-md text-label-sm uppercase text-on-surface-variant">{post.category}</p>
       <h1 className="text-headline-lg-mobile font-display text-laundry-blue-deep md:text-headline-lg">{post.title}</h1>
       <p className="mt-1 text-label-sm text-on-surface-variant">
-        {post.published_at && new Date(post.published_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+        {post.published_at && (
+          <time dateTime={post.published_at}>
+            {new Date(post.published_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </time>
+        )}
+        {' · '}Shalah Rex Laundry, Enugu
       </p>
 
       {/* Posts written with the rich text editor are stored as HTML; older posts written before it
@@ -87,6 +111,19 @@ export default function BlogPostPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <nav aria-label="Related services" className="mt-stack-lg">
+        <h2 className="text-headline-md font-display text-on-surface">Laundry services in Enugu</h2>
+        <ul className="mt-stack-sm flex flex-col gap-2">
+          {relatedServices.map((s) => (
+            <li key={s.slug}>
+              <Link to={paths.serviceDetail(s.slug)} className="font-semibold text-primary underline">
+                {s.heroHeadline}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </article>
   )
 }

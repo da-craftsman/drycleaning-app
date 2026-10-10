@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import { business, whatsappLink } from '@/lib/constants'
+import { useSeo } from '@/hooks/useSeo'
+import { faqJsonLd, staticSeo } from '@/lib/seo'
 
 const faqs = [
   {
@@ -15,8 +17,12 @@ const faqs = [
     a: 'White Wash is a deeper, whiter-focused clean with a faster turnaround than Regular. Express prioritizes speed, most items are ready within 24 hours, at a premium price.',
   },
   {
-    q: 'Do you offer pickup and delivery?',
-    a: 'Yes. At checkout you can choose Self Drop-off, Pickup Only, Delivery Only, or Pickup & Delivery, and select your Enugu zone for the applicable fee.',
+    q: 'Do you offer home pick up and delivery in Enugu?',
+    a: 'Yes. At checkout you can choose Self Drop-off, Pickup Only, Delivery Only, or Pickup & Delivery, and select your Enugu zone for the applicable fee. We cover Lomalinda Extension, Independence Layout, GRA, New Haven, Trans-Ekulu, Uwani, Achara Layout, Asata, Ugwuaji, Gariki, Holy Ghost, Coal Camp, Abakpa Nike, Maryland and Centenary City.',
+  },
+  {
+    q: 'Where is Shalah Rex Laundry located?',
+    a: `Our laundry is at ${business.address}. Self drop-off at our facility is always free.`,
   },
   {
     q: 'What if an item comes back damaged or missing?',
@@ -29,9 +35,16 @@ const faqs = [
 ]
 
 export default function SupportPage() {
+  const base = staticSeo('/support')
+  useSeo({ ...base, jsonLd: [...(base.jsonLd ?? []), faqJsonLd(faqs)] })
+
   return (
     <div className="mx-auto w-full min-w-0 max-w-shell px-margin-mobile py-stack-lg md:px-gutter md:py-16">
-      <h1 className="text-center text-headline-lg-mobile font-display text-laundry-blue-deep md:text-headline-lg">Support</h1>
+      <h1 className="text-center text-headline-lg-mobile font-display text-laundry-blue-deep md:text-headline-lg">Laundry Support &amp; FAQs</h1>
+      <p className="mx-auto mt-stack-sm max-w-2xl text-center text-body-md text-on-surface-variant">
+        Questions about home pick up and delivery, turnaround times or payment? Here are quick answers from the
+        {' '}{business.name} team in Enugu, or reach us directly.
+      </p>
 
       <div className="mt-stack-lg grid grid-cols-1 gap-stack-lg md:grid-cols-[2fr_1fr]">
         <div>

@@ -15,6 +15,10 @@ export interface ServiceFaq {
 export interface ServiceOffering {
   slug: string
   title: string
+  /** Search result title for the detail page (50-60 chars, keyword + Enugu first). */
+  seoTitle: string
+  /** Search result description for the detail page (140-160 chars). */
+  seoDescription: string
   /** Short line used on the Services grid and Home page cards. */
   description: string
   image: string
@@ -37,15 +41,18 @@ export const services: ServiceOffering[] = [
   {
     slug: 'pickup-dropoff',
     title: 'Pickup & Drop-off',
-    description: 'A convenient service that brings laundry care directly to your doorstep.',
+    seoTitle: 'Home Pick Up & Delivery Laundry in Enugu | Shalah Rex',
+    seoDescription:
+      'Laundry pick up and delivery from your home or office across Enugu. Shalah Rex Laundry collects, washes, irons and returns your clothes. Book online today.',
+    description: 'Home pick up and delivery laundry that brings laundry care directly to your doorstep in Enugu.',
     image: '/images/services/pickup-dropoff.jpg',
     badge: 'DOOR-TO-DOOR',
-    heroHeadline: 'Laundry Day, Delivered to Your Door',
+    heroHeadline: 'Home Pick Up and Delivery Laundry in Enugu',
     heroDescription:
-      "Skip the trip. We collect your laundry from home or office and bring it back fresh, folded, and ready to wear, on a schedule that works for you.",
+      "Skip the trip. We collect your laundry from your home or office anywhere we cover in Enugu and bring it back fresh, folded, and ready to wear, on a schedule that works for you.",
     sectionTitle: 'Convenient Collection, Every Time',
     sectionBody:
-      "Book a pickup window that fits your day and we handle the rest. Our riders collect from your address, log every item at drop-off, and return your finished laundry right to your door, no queues, no detours.",
+      "Book a pickup window that fits your day and we handle the rest. Our riders collect from your address, log every item at drop-off, and return your finished laundry right to your door, no queues, no detours. It's the easiest way to do laundry in Enugu: order online, track every stage live, and pay by card, transfer, USSD or cash on delivery.",
     highlights: [
       { icon: Truck, title: 'Scheduled Pickups', body: 'Choose a pickup window that fits around your day.' },
       { icon: PackageCheck, title: 'Item Tracking', body: 'Every piece is logged at collection and matched at delivery.' },
@@ -64,7 +71,7 @@ export const services: ServiceOffering[] = [
       },
       {
         q: 'What areas do you cover?',
-        a: 'We currently pick up and deliver across Independence Layout, New Haven, Lomalinda Extension, Uwani, Ugwuaji, Achara, Asata, Gariki, GRA, and Holy Ghost.',
+        a: 'We currently pick up and deliver across Lomalinda Extension, Independence Layout, GRA, New Haven, Trans-Ekulu, Uwani, Achara Layout, Asata, Ugwuaji, Gariki, Holy Ghost, Coal Camp, Abakpa Nike, Maryland, and Centenary City in Enugu.',
       },
       {
         q: 'Is there a fee for pickup and delivery?',
@@ -79,10 +86,13 @@ export const services: ServiceOffering[] = [
   {
     slug: 'clothing-care',
     title: 'Clothing Care',
+    seoTitle: 'Wash & Iron Laundry Service in Enugu | Shalah Rex',
+    seoDescription:
+      'Shirts, jeans, Agbada and native wear washed, ironed and folded by fabric type. Regular, White Wash and Express 24h laundry in Enugu with home pick up.',
     description: 'Specialized care for a variety of items, including shirts, dresses, jeans, and traditional attire.',
     image: '/images/services/clothing-care.jpg',
     badge: 'EXPERT CARE',
-    heroHeadline: 'Everyday Wear, Cared for Like New',
+    heroHeadline: 'Wash and Iron Clothing Care in Enugu',
     heroDescription:
       "From shirts and jeans to Agbada and native wear, our clothing care service treats every fabric with the right wash, the right heat, and the right finish.",
     sectionTitle: 'Tailored Care for Every Fabric',
@@ -121,10 +131,13 @@ export const services: ServiceOffering[] = [
   {
     slug: 'home-textiles',
     title: 'Home Textiles Cleaning',
-    description: 'Cleaning services for home fabrics like curtains.',
+    seoTitle: 'Curtain, Duvet & Bedding Cleaning Enugu | Shalah Rex',
+    seoDescription:
+      'Curtains, duvets, bedspreads and rugs cleaned with fabric-safe care in Enugu. Heavy drapes welcome, with home pick up and delivery from Shalah Rex Laundry.',
+    description: 'Cleaning services for home fabrics like curtains, duvets, bedspreads and rugs.',
     image: '/images/services/home-textiles.jpg',
     badge: 'PREMIUM CARE',
-    heroHeadline: 'Restore the Freshness of Your Home Textiles',
+    heroHeadline: 'Curtain, Duvet and Bedding Cleaning in Enugu',
     heroDescription:
       "Specialized cleaning for your most delicate curtains, luxury bedding, and upholstery. Professional allergen removal with fabric-safe technology.",
     sectionTitle: 'Expert Textile Restoration',
@@ -163,10 +176,13 @@ export const services: ServiceOffering[] = [
   {
     slug: 'dry-cleaning-ironing',
     title: 'Dry Cleaning & Ironing',
+    seoTitle: 'Dry Cleaning & Ironing in Enugu | Shalah Rex Laundry',
+    seoDescription:
+      'Professional dry cleaning for suits, gowns, silk and wool in Enugu, finished with hand pressing. Express 24 to 48 hour turnaround and home pick up available.',
     description: 'Thorough cleaning services designed for delicate or high-value fabrics.',
     image: '/images/services/dry-cleaning-ironing.jpg',
     badge: 'SPECIALIST CARE',
-    heroHeadline: 'Sharp, Polished Results for Delicate Fabrics',
+    heroHeadline: 'Dry Cleaning and Ironing in Enugu',
     heroDescription:
       "Suits, gowns, and delicate fabrics need more than a standard wash. Our dry cleaning and ironing service uses solvent-based cleaning and precision pressing to keep them looking their best.",
     sectionTitle: 'Precision Dry Cleaning, Every Garment',
@@ -205,10 +221,13 @@ export const services: ServiceOffering[] = [
   {
     slug: 'stain-removal',
     title: 'Stain Removal',
+    seoTitle: 'Stain Removal Service in Enugu | Shalah Rex Laundry',
+    seoDescription:
+      'Oil, ink, wine and mud stains lifted safely by stain specialists in Enugu. Free stain assessment, fabric-safe treatment and home pick up and delivery.',
     description: 'Expert treatments designed to safely remove stubborn stains.',
     image: '/images/services/stain-removal.jpg',
     badge: 'DEEP CLEAN',
-    heroHeadline: 'Stubborn Stains, Professionally Lifted',
+    heroHeadline: 'Professional Stain Removal in Enugu',
     heroDescription:
       "Oil, wine, ink, or mud, our stain removal specialists identify the stain and apply the right treatment to lift it without damaging the fabric underneath.",
     sectionTitle: 'Targeted Treatment for Every Stain',
@@ -247,10 +266,13 @@ export const services: ServiceOffering[] = [
   {
     slug: 'repairs-alterations',
     title: 'Repairs & Alterations',
+    seoTitle: 'Clothing Repairs & Alterations Enugu | Shalah Rex',
+    seoDescription:
+      'Hems, zips, buttons and fitted alterations by in-house tailors in Enugu. Get your clothes repaired along with your laundry, with home pick up and delivery.',
     description: 'Repair and alteration services to help maintain and extend the life of your garments.',
     image: '/images/services/repairs-alterations.jpg',
     badge: 'SKILLED CRAFT',
-    heroHeadline: 'Extend the Life of Your Favourite Garments',
+    heroHeadline: 'Clothing Repairs and Alterations in Enugu',
     heroDescription:
       "A loose hem, a missing button, or a fit that's changed, our tailors handle repairs and alterations so you can keep wearing the clothes you already love.",
     sectionTitle: 'Skilled Repairs, Lasting Fit',

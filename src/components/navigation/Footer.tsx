@@ -1,11 +1,16 @@
 import { Link } from 'react-router-dom'
-import { Mail, MapPin } from 'lucide-react'
+import { Mail, MapPin, Phone } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import { paths } from '@/routes/paths'
 import { business, whatsappLink } from '@/lib/constants'
+import { services } from '@/lib/services'
 
 const columns = [
+  {
+    title: 'Services',
+    links: services.map((s) => ({ to: paths.serviceDetail(s.slug), label: s.title })),
+  },
   {
     title: 'Company',
     links: [
@@ -39,7 +44,7 @@ function Footer() {
           <div className="flex w-fit flex-col items-start gap-stack-sm">
             <Logo inverted />
             <p className="max-w-xs text-body-md text-clean-white/70">
-              Premium wash, iron, pickup and delivery for {business.city}.
+              Laundry and dry cleaning in {business.city}, with home pick up and delivery across Enugu.
             </p>
             <div className="flex flex-col gap-1 pt-2">
               <a
@@ -49,6 +54,12 @@ function Footer() {
                 className="flex items-center gap-2 text-body-md text-clean-white/70 hover:text-[#25D366]"
               >
                 <WhatsAppIcon className="h-4 w-4" /> WhatsApp us
+              </a>
+              <a
+                href={`tel:${business.phoneDisplay.replace(/\s/g, '')}`}
+                className="flex items-center gap-2 text-body-md text-clean-white/70 hover:text-clean-white"
+              >
+                <Phone className="h-4 w-4" /> {business.phoneDisplay}
               </a>
               <a
                 href={`mailto:${business.email}`}
@@ -62,7 +73,7 @@ function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-stack-lg sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-stack-lg sm:grid-cols-4">
             {columns.map((col) => (
               <div key={col.title} className="flex flex-col gap-2">
                 <p className="text-label-sm uppercase text-clean-white/50">{col.title}</p>

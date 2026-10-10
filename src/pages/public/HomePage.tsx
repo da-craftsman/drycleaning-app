@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
+  CalendarCheck,
   Check,
   ChevronRight,
   Clock,
   Leaf,
+  MapPin,
   Package,
   ReceiptText,
   ShieldCheck,
@@ -24,6 +26,9 @@ import { usePublishedBlogPosts } from '@/lib/queries/useBlogPosts';
 import { paths } from '@/routes/paths';
 import { cn, isExternalUrl } from '@/lib/utils';
 import { services, heroImage } from '@/lib/services';
+import { business } from '@/lib/constants';
+import { useSeo } from '@/hooks/useSeo';
+import { SERVICE_AREAS, staticSeo } from '@/lib/seo';
 
 const trackEveryStepImage = '/images/home/track-every-step.jpg';
 
@@ -54,7 +59,7 @@ function BannerLink({
 const heroStats = [
   { value: '500+', label: 'Orders completed' },
   { value: '24h', label: 'Express available' },
-  { value: '8+', label: 'Enugu zones covered' },
+  { value: '15', label: 'Enugu zones covered' },
 ];
 
 const valueProps = [
@@ -128,6 +133,24 @@ const trackingSteps = [
   },
 ];
 
+const howItWorks = [
+  {
+    icon: CalendarCheck,
+    title: '1. Book online',
+    desc: 'Pick your items and service tier, then choose a pick up window that suits you.',
+  },
+  {
+    icon: Truck,
+    title: '2. We pick up',
+    desc: 'Our rider collects your laundry from your home or office anywhere we cover in Enugu.',
+  },
+  {
+    icon: Package,
+    title: '3. Delivered fresh',
+    desc: 'Washed, ironed and folded by fabric type, then delivered back to your door.',
+  },
+];
+
 const testimonials = [
   {
     name: 'Ngozi A.',
@@ -154,6 +177,7 @@ export default function HomePage() {
   const { data: banner } = usePromoBanner();
   const { data: posts } = usePublishedBlogPosts();
   const navigate = useNavigate();
+  useSeo(staticSeo('/'));
 
   return (
     <div className='flex flex-col'>
@@ -161,17 +185,21 @@ export default function HomePage() {
       <section className='relative flex min-h-105 items-center overflow-hidden md:min-h-140'>
         <img
           src={heroImage}
-          alt=''
+          alt='Shalah Rex Laundry, a laundry and dry cleaning service in Enugu'
+          fetchPriority='high'
           className='absolute inset-0 h-full w-full object-cover'
         />
         <div className='absolute inset-0 bg-linear-to-t from-laundry-blue-deep via-laundry-blue-deep/60 to-laundry-blue-deep/10' />
-        <div className='relative mx-auto flex w-full min-w-0 max-w-shell flex-col gap-stack-sm px-margin-mobile py-16 md:px-gutter md:py-24'>
-          <h1 className='max-w-md text-headline-lg-mobile font-display text-clean-white md:max-w-xl md:text-display-lg'>
-            Pristine clothes, simplified living.
+        <div className='relative mx-auto flex w-full min-w-0 max-w-shell flex-col gap-stack-sm px-margin-mobile pb-16 pt-28 md:px-gutter md:pb-24 md:pt-32'>
+          <p className='text-label-sm font-bold uppercase tracking-wide text-secondary-container'>
+            Shalarex Laundry, Enugu
+          </p>
+          <h1 className='max-w-md text-headline-lg-mobile font-display text-clean-white md:max-w-2xl md:text-display-lg'>
+            Home Pick Up &amp; Delivery Laundry in Enugu
           </h1>
           <p className='max-w-sm text-body-md text-clean-white/85 md:max-w-md md:text-body-lg'>
-            Clean wash, iron, pickup and delivery for Enugu, track every stage
-            live.
+            Pristine clothes, simplified living. We wash, iron, pick up and
+            deliver across Enugu, and you track every stage live.
           </p>
           <Button size='lg' asChild className='mt-2 w-fit'>
             <Link to={paths.order}>
@@ -338,11 +366,12 @@ export default function HomePage() {
         </div>
         <div className='mt-stack-sm flex flex-col gap-2'>
           {services.slice(0, 4).map((service) => (
-            <Link key={service.slug} to={paths.services}>
+            <Link key={service.slug} to={paths.serviceDetail(service.slug)}>
               <Card className='flex items-center gap-3 p-stack-sm transition-shadow hover:shadow-soft-lift'>
                 <img
                   src={service.image}
-                  alt=''
+                  alt={`${service.title} in Enugu`}
+                  loading='lazy'
                   className='h-16 w-16 shrink-0 rounded object-cover'
                 />
                 <div className='min-w-0 flex-1'>
@@ -386,6 +415,70 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Home pick up & delivery: local SEO copy + coverage areas */}
+      <section className='py-stack-lg md:py-16'>
+        <div className='mx-auto w-full min-w-0 max-w-shell px-margin-mobile md:px-gutter'>
+          <div className='mx-auto max-w-3xl text-center'>
+            <h2 className='text-headline-md font-display text-on-surface md:text-headline-lg'>
+              Laundry Pick Up and Delivery Across Enugu
+            </h2>
+            <p className='mt-stack-sm text-body-md text-on-surface-variant md:text-body-lg'>
+              {business.name} (many customers know us as Shalarex Laundry) is
+              an Enugu laundry and dry cleaning service built around your day.
+              Book online, choose a pick up window, and our rider collects your
+              clothes from your home or office. Every item is washed, ironed and
+              folded according to its fabric, then delivered back to your door.
+            </p>
+          </div>
+
+          <div className='mt-stack-lg grid grid-cols-1 gap-stack-md md:grid-cols-3'>
+            {howItWorks.map((step) => (
+              <div
+                key={step.title}
+                className='flex flex-col items-center gap-2 rounded-2xl bg-surface-container-low p-stack-lg text-center'
+              >
+                <div className='flex h-11 w-11 items-center justify-center rounded-full bg-primary/10'>
+                  <step.icon className='h-5 w-5 text-primary' />
+                </div>
+                <h3 className='text-label-md font-bold normal-case text-on-surface'>
+                  {step.title}
+                </h3>
+                <p className='text-body-md text-on-surface-variant'>
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className='mt-stack-lg rounded-2xl border border-outline-variant/40 p-stack-lg'>
+            <h3 className='flex items-center gap-2 text-body-lg font-bold text-on-surface'>
+              <MapPin className='h-5 w-5 shrink-0 text-primary' /> Areas we
+              cover in Enugu
+            </h3>
+            <ul className='mt-stack-sm flex flex-wrap gap-2'>
+              {SERVICE_AREAS.map((area) => (
+                <li
+                  key={area}
+                  className='rounded-full bg-primary/10 px-3 py-1 text-label-sm font-semibold text-primary'
+                >
+                  {area}
+                </li>
+              ))}
+            </ul>
+            <p className='mt-stack-sm text-body-md text-on-surface-variant'>
+              Prefer to drop off? Visit our laundry at {business.address}.
+              Self drop-off is always free.{' '}
+              <Link
+                to={paths.serviceDetail('pickup-dropoff')}
+                className='font-semibold text-primary underline'
+              >
+                How home pick up and delivery works
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Track every step */}
       <section className='py-stack-lg md:py-16'>
         <div className='mx-auto w-full min-w-0 max-w-shell px-margin-mobile md:px-gutter'>
@@ -393,6 +486,7 @@ export default function HomePage() {
             <img
               src={trackEveryStepImage}
               alt='Customer checking their laundry order status on a phone'
+              loading='lazy'
               className='aspect-4/5 w-full rounded-2xl object-cover md:aspect-square'
             />
             <div>
@@ -541,7 +635,8 @@ export default function HomePage() {
                     {post.feature_image ? (
                       <img
                         src={post.feature_image}
-                        alt=''
+                        alt={post.title}
+                        loading='lazy'
                         className='aspect-video w-full object-cover'
                       />
                     ) : (
@@ -551,9 +646,9 @@ export default function HomePage() {
                       <p className='text-label-sm uppercase text-on-surface-variant'>
                         {post.category}
                       </p>
-                      <p className='text-label-md font-bold normal-case text-on-surface'>
+                      <h3 className='text-label-md font-bold normal-case text-on-surface'>
                         {post.title}
-                      </p>
+                      </h3>
                       <p className='text-body-md text-on-surface-variant'>
                         {post.excerpt}
                       </p>

@@ -3,10 +3,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { paths } from '@/routes/paths'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminPermission } from '@/types/database'
+import { useNoIndex } from '@/hooks/useSeo'
 
 function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
+  useNoIndex('My Account | Shalah Rex Laundry', location.pathname)
 
   if (isLoading) {
     return (
@@ -36,6 +38,7 @@ function RequireVerifiedEmail() {
 
 function AdminRoute() {
   const { isAdmin, isLoading } = useAuth()
+  useNoIndex('Admin | Shalah Rex Laundry', useLocation().pathname)
 
   if (isLoading) {
     return (

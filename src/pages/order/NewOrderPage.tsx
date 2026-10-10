@@ -15,8 +15,11 @@ import { useCategories } from '@/lib/queries/useCategories'
 import { useClothingItems } from '@/lib/queries/useClothingItems'
 import { paths } from '@/routes/paths'
 import type { ClothingItem } from '@/types/database'
+import { useSeo } from '@/hooks/useSeo'
+import { staticSeo } from '@/lib/seo'
 
 export default function NewOrderPage() {
+  useSeo(staticSeo('/order'))
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const { data: categories } = useCategories()

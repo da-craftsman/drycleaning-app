@@ -6,9 +6,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
-import { services } from '@/lib/services'
+import { services, type ServiceOffering } from '@/lib/services'
 import { business, whatsappLink } from '@/lib/constants'
 import { paths } from '@/routes/paths'
+import { useNoIndex, useSeo } from '@/hooks/useSeo'
+import { serviceSeo } from '@/lib/seo'
 
 export default function ServiceDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -16,15 +18,26 @@ export default function ServiceDetailPage() {
   const otherServices = services.filter((s) => s.slug !== slug).slice(0, 3)
 
   if (!service) {
-    return (
-      <div className="mx-auto w-full min-w-0 max-w-2xl px-margin-mobile py-stack-lg text-center">
-        <p className="text-body-lg text-on-surface-variant">We couldn't find that service.</p>
-        <Button asChild className="mt-stack-md">
-          <Link to={paths.services}>Back to Services</Link>
-        </Button>
-      </div>
-    )
+    return <ServiceNotFound slug={slug} />
   }
+
+  return <ServiceDetail service={service} otherServices={otherServices} />
+}
+
+function ServiceNotFound({ slug }: { slug: string | undefined }) {
+  useNoIndex('Service Not Found | Shalah Rex Laundry', `/services/${slug ?? ''}`)
+  return (
+    <div className="mx-auto w-full min-w-0 max-w-2xl px-margin-mobile py-stack-lg text-center">
+      <p className="text-body-lg text-on-surface-variant">We couldn't find that service.</p>
+      <Button asChild className="mt-stack-md">
+        <Link to={paths.services}>Back to Services</Link>
+      </Button>
+    </div>
+  )
+}
+
+function ServiceDetail({ service, otherServices }: { service: ServiceOffering; otherServices: ServiceOffering[] }) {
+  useSeo(serviceSeo(service))
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-shell px-margin-mobile py-stack-lg md:px-gutter md:py-16">
@@ -34,7 +47,7 @@ export default function ServiceDetailPage() {
 
       {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl">
-        <img src={service.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={service.image} alt={`${service.title} by ${business.name}, Enugu`} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-br from-laundry-blue-deep/90 via-laundry-blue-deep/80 to-primary/70" />
         <div className="relative flex flex-col gap-stack-sm px-margin-mobile py-stack-lg md:max-w-xl md:px-12 md:py-16">
           <Badge variant="express" className="w-fit">
@@ -90,7 +103,7 @@ export default function ServiceDetailPage() {
               </Avatar>
               <div>
                 <p className="text-label-sm font-bold uppercase text-secondary-container">{service.serviceLeadRole}</p>
-                <p className="text-label-md font-bold normal-case text-clean-white">ShalaRex Cleaning Solutions</p>
+                <p className="text-label-md font-bold normal-case text-clean-white">{business.name}</p>
               </div>
             </div>
           </CardContent>
@@ -142,9 +155,9 @@ export default function ServiceDetailPage() {
           {otherServices.map((s) => (
             <Link key={s.slug} to={paths.serviceDetail(s.slug)}>
               <Card className="overflow-hidden transition-shadow hover:shadow-soft-lift">
-                <img src={s.image} alt="" className="aspect-video w-full object-cover" />
+                <img src={s.image} alt={`${s.title} in Enugu`} loading="lazy" className="aspect-video w-full object-cover" />
                 <CardContent className="pt-stack-sm">
-                  <p className="text-label-md font-bold normal-case text-on-surface">{s.title}</p>
+                  <h3 className="text-label-md font-bold normal-case text-on-surface">{s.title}</h3>
                 </CardContent>
               </Card>
             </Link>

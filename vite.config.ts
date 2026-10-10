@@ -3,12 +3,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { seoPlugin } from './scripts/vite-plugin-seo.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    seoPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/favicon.png'],
@@ -31,6 +33,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         navigateFallback: '/index.html',
+        // Let these reach the network as real files instead of being answered with the app shell.
+        navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/api\//],
       },
       devOptions: {
         enabled: false,

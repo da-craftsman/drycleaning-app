@@ -10,6 +10,8 @@ import { useOrderByDisplayId, useOrderItems } from '@/lib/queries/useOrders'
 import { useDeliveryZones } from '@/lib/queries/useDeliveryZones'
 import { paths } from '@/routes/paths'
 import { whatsappLink } from '@/lib/constants'
+import { useSeo } from '@/hooks/useSeo'
+import { staticSeo } from '@/lib/seo'
 
 function LookupForm() {
   const [value, setValue] = useState('')
@@ -90,6 +92,8 @@ function TrackingView({ orderId }: { orderId: string }) {
 
 export default function TrackOrderPage() {
   const { orderId } = useParams<{ orderId: string }>()
+  // Individual order pages are private to the customer: keep them out of search results.
+  useSeo(orderId ? staticSeo('/track', { path: paths.track(orderId), noindex: true }) : staticSeo('/track'))
 
   if (!orderId) {
     return (

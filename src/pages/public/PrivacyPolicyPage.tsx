@@ -1,3 +1,5 @@
+import { useSeo } from '@/hooks/useSeo'
+import { staticSeo } from '@/lib/seo'
 import { business } from '@/lib/constants'
 
 const sections = [
@@ -56,6 +58,7 @@ const sections = [
 ]
 
 export default function PrivacyPolicyPage() {
+  useSeo(staticSeo('/privacy-policy'))
   return (
     <article className="mx-auto w-full min-w-0 max-w-2xl px-margin-mobile py-stack-lg md:px-gutter">
       <h1 className="text-headline-lg-mobile font-display text-laundry-blue-deep md:text-headline-lg">Privacy Policy</h1>
