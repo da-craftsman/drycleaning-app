@@ -17,6 +17,7 @@ const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 function PaymentStep({
   total,
   email,
+  customerName,
   ensureOrder,
   onCashOnDelivery,
   onPaystackVerified,
@@ -25,6 +26,7 @@ function PaymentStep({
 }: {
   total: number;
   email: string;
+  customerName: string;
   ensureOrder: (method: PaymentMethod) => Promise<Order>;
   onCashOnDelivery: () => void;
   onPaystackVerified: (order: Order) => void;
@@ -65,11 +67,27 @@ function PaymentStep({
 
       const { default: PaystackPop } = await import('@paystack/inline-js');
       const paystack = new PaystackPop();
+      const [firstName, ...otherNames] = customerName.trim().split(/\s+/);
       paystack.newTransaction({
         key: paystackKey,
         email,
         amount: Math.round(order.total * 100),
-        metadata: { order_id: order.id, display_id: order.display_id },
+        // Fills in the payer's customer record on Paystack.
+        firstName,
+        lastName: otherNames.join(' ') || undefined,
+        phone: order.phone,
+        // order_id is what paystack-webhook matches the payment back to — keep it. custom_fields are
+        // shown on the transaction's page in the Paystack dashboard, for resolving payment issues.
+        metadata: {
+          order_id: order.id,
+          display_id: order.display_id,
+          custom_fields: [
+            { display_name: 'Customer Name', variable_name: 'customer_name', value: customerName },
+            { display_name: 'Order Number', variable_name: 'order_number', value: order.display_id },
+            { display_name: 'Phone Number', variable_name: 'phone_number', value: order.phone },
+            { display_name: 'Address', variable_name: 'address', value: order.address || 'Self drop-off' },
+          ],
+        },
         onSuccess: async (transaction) => {
           try {
             const result = await verifyPaystackPayment(

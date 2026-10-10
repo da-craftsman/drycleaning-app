@@ -145,6 +145,7 @@ export default function CheckoutPage() {
         <PaymentStep
           total={total}
           email={session.email}
+          customerName={session.full_name}
           ensureOrder={ensureOrder}
           onCashOnDelivery={handleCashOnDelivery}
           onPaystackVerified={finishOrder}

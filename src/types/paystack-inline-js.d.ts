@@ -11,6 +11,9 @@ declare module '@paystack/inline-js' {
     key: string
     email: string
     amount: number
+    firstName?: string
+    lastName?: string
+    phone?: string
     ref?: string
     currency?: string
     metadata?: Record<string, unknown>
