@@ -20,18 +20,29 @@ export async function getSessionProfile(): Promise<Profile | null> {
   return getProfile(data.session.user.id)
 }
 
-export async function signIn(email: string, password: string): Promise<Profile> {
+/** `captchaToken` comes from CaptchaWidget — required by Supabase once its CAPTCHA protection is on. */
+export async function signIn(email: string, password: string, captchaToken?: string): Promise<Profile> {
   if (!isSupabaseConfigured) return signInMock(email, password)
-  const { data, error } = await supabase!.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase!.auth.signInWithPassword({ email, password, options: { captchaToken } })
   if (error) throw error
   const profile = await getProfile(data.user.id)
   if (!profile) throw new Error('Signed in, but no profile record was found.')
   return profile
 }
 
-export async function signUp(input: { fullName: string; email: string; phone: string; password: string }): Promise<Profile> {
+export async function signUp(input: {
+  fullName: string
+  email: string
+  phone: string
+  password: string
+  captchaToken?: string
+}): Promise<Profile> {
   if (!isSupabaseConfigured) return signUpMock(input)
-  const { data, error } = await supabase!.auth.signUp({ email: input.email, password: input.password })
+  const { data, error } = await supabase!.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: { captchaToken: input.captchaToken },
+  })
   if (error) throw error
   if (!data.user) throw new Error('Sign up did not return a user.')
   const { data: profile, error: profileError } = await supabase!
@@ -71,10 +82,11 @@ export async function updatePassword(userId: string, currentPassword: string, ne
  * not the address has an account — Supabase's own resetPasswordForEmail doesn't reveal that either,
  * to avoid letting this form be used to enumerate registered emails.
  */
-export async function requestPasswordReset(email: string): Promise<void> {
+export async function requestPasswordReset(email: string, captchaToken?: string): Promise<void> {
   if (!isSupabaseConfigured) return requestPasswordResetMock(email)
   const { error } = await supabase!.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}${paths.resetPassword}`,
+    captchaToken,
   })
   if (error) throw error
 }
@@ -96,6 +108,9 @@ export async function confirmPasswordReset(newPassword: string): Promise<void> {
  * which would break "sign up and log in immediately." signInWithOtp/verifyOtp work independently of
  * that project setting, so we use them purely to prove ownership of the email address and flip
  * profiles.email_verified_at ourselves, without ever blocking login.
+ *
+ * Note: once Supabase's CAPTCHA protection is on, signInWithOtp needs a captchaToken too — add a
+ * CaptchaWidget to VerifyEmailPage before re-enabling email verification.
  */
 export async function sendVerificationEmail(email: string): Promise<void> {
   if (!isSupabaseConfigured) return sendVerificationEmailMock()

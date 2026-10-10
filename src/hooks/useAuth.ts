@@ -18,7 +18,8 @@ export function useAuth() {
   const queryClient = useQueryClient()
 
   const signInMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => signIn(email, password),
+    mutationFn: ({ email, password, captchaToken }: { email: string; password: string; captchaToken?: string }) =>
+      signIn(email, password, captchaToken),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.session }),
   })
 
@@ -42,7 +43,7 @@ export function useAuth() {
   })
 
   const requestPasswordResetMutation = useMutation({
-    mutationFn: (email: string) => requestPasswordReset(email),
+    mutationFn: ({ email, captchaToken }: { email: string; captchaToken?: string }) => requestPasswordReset(email, captchaToken),
   })
 
   const confirmPasswordResetMutation = useMutation({

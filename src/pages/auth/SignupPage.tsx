@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Input, FieldError } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Button } from '@/components/ui/button'
+import { CaptchaWidget, captchaEnabled } from '@/components/auth/CaptchaWidget'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { sendWelcomeEmail } from '@/lib/data/auth'
@@ -28,6 +30,8 @@ export default function SignupPage() {
   const location = useLocation() as { state?: { from?: string } }
   const { toast } = useToast()
   const from = location.state?.from
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   const {
     register,
@@ -37,7 +41,7 @@ export default function SignupPage() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await signUp(values)
+      await signUp({ ...values, captchaToken: captchaToken ?? undefined })
       toast({ title: 'Account created', description: 'Welcome to Shalah Rex Laundry!', variant: 'success' })
       // Best-effort: the account already exists at this point, so a mailer hiccup shouldn't affect
       // signup — it's just a welcome email, not something to block or retry on the customer's behalf.
@@ -48,7 +52,9 @@ export default function SignupPage() {
       // for the user — they might want to finish what they started, or just look around first.
       if (!from) navigate(paths.account)
     } catch {
-      // surfaced via signUpStatus.error below
+      // surfaced via signUpStatus.error below. Tokens are single-use, so get a fresh one.
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -140,7 +146,9 @@ export default function SignupPage() {
         <p className="text-label-md text-error">{getErrorMessage(signUpStatus.error, 'Something went wrong. Please try again.')}</p>
       )}
 
-      <Button type="submit" size="lg" disabled={signUpStatus.isPending}>
+      <CaptchaWidget key={captchaKey} onToken={setCaptchaToken} />
+
+      <Button type="submit" size="lg" disabled={signUpStatus.isPending || (captchaEnabled && !captchaToken)}>
         {signUpStatus.isPending ? 'Creating account…' : 'Create Account'}
       </Button>
 

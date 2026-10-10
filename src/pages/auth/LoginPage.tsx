@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input, FieldError } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Button } from '@/components/ui/button';
+import { CaptchaWidget, captchaEnabled } from '@/components/auth/CaptchaWidget';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { paths } from '@/routes/paths';
@@ -25,6 +27,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { from?: string } };
   const { toast } = useToast();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   const {
     register,
@@ -34,7 +38,7 @@ export default function LoginPage() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const profile = await signIn(values);
+      const profile = await signIn({ ...values, captchaToken: captchaToken ?? undefined });
       toast({ title: 'Login successful', description: `Welcome back, ${profile.full_name}.`, variant: 'success' });
       const isStaff = profile.role === 'admin' || profile.role === 'superadmin';
       const roleDefault = isStaff ? paths.admin : paths.account;
@@ -49,7 +53,9 @@ export default function LoginPage() {
           : !from.startsWith('/admin'));
       navigate(fromMatchesRole ? from! : roleDefault);
     } catch {
-      // surfaced via signInStatus.error below
+      // surfaced via signInStatus.error below. Tokens are single-use, so get a fresh one.
+      setCaptchaToken(null);
+      setCaptchaKey((k) => k + 1);
     }
   };
 
@@ -109,7 +115,13 @@ export default function LoginPage() {
         </p>
       )}
 
-      <Button type='submit' size='lg' disabled={signInStatus.isPending}>
+      <CaptchaWidget key={captchaKey} onToken={setCaptchaToken} />
+
+      <Button
+        type='submit'
+        size='lg'
+        disabled={signInStatus.isPending || (captchaEnabled && !captchaToken)}
+      >
         {signInStatus.isPending ? 'Logging in…' : 'Log In'}
       </Button>
 

@@ -7,6 +7,7 @@ import { MailCheck } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input, FieldError } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { CaptchaWidget, captchaEnabled } from '@/components/auth/CaptchaWidget'
 import { useAuth } from '@/hooks/useAuth'
 import { getErrorMessage } from '@/lib/utils'
 import { paths } from '@/routes/paths'
@@ -20,6 +21,8 @@ type FormValues = z.infer<typeof schema>
 export default function ForgotPasswordPage() {
   const { requestPasswordReset, requestPasswordResetStatus } = useAuth()
   const [sentTo, setSentTo] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   const {
     register,
@@ -29,13 +32,15 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await requestPasswordReset(values.email)
+      await requestPasswordReset({ email: values.email, captchaToken: captchaToken ?? undefined })
       // Shown regardless of whether the address has an account, matching Supabase's own
       // resetPasswordForEmail behavior — revealing that here would let this form be used to
       // check which emails are registered.
       setSentTo(values.email)
     } catch {
-      // surfaced via requestPasswordResetStatus.error below
+      // surfaced via requestPasswordResetStatus.error below. Tokens are single-use, so get a fresh one.
+      setCaptchaToken(null)
+      setCaptchaKey((k) => k + 1)
     }
   }
 
@@ -82,7 +87,9 @@ export default function ForgotPasswordPage() {
         <p className="text-label-md text-error">{getErrorMessage(requestPasswordResetStatus.error, 'Something went wrong. Please try again.')}</p>
       )}
 
-      <Button type="submit" size="lg" disabled={requestPasswordResetStatus.isPending}>
+      <CaptchaWidget key={captchaKey} onToken={setCaptchaToken} />
+
+      <Button type="submit" size="lg" disabled={requestPasswordResetStatus.isPending || (captchaEnabled && !captchaToken)}>
         {requestPasswordResetStatus.isPending ? 'Sending…' : 'Send Reset Link'}
       </Button>
 
