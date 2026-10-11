@@ -35,5 +35,5 @@ supabase/.temp/
 supabase/.branches/
 supabase/**/.env
 
-# Product video build intermediates (screenshots, render scripts, soundtrack)
-products videos/work/
+# Product promo video, its source captures and render scripts (kept local, not versioned)
+products videos/
