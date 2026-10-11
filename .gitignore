@@ -37,3 +37,6 @@ supabase/**/.env
 
 # Product promo video, its source captures and render scripts (kept local, not versioned)
 products videos/
+
+# Internal setup guide and per-client worksheet (kept local, not versioned)
+system setup guide/
