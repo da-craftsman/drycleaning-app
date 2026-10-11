@@ -34,3 +34,6 @@ use/
 supabase/.temp/
 supabase/.branches/
 supabase/**/.env
+
+# Product video build intermediates (screenshots, render scripts, soundtrack)
+products videos/work/

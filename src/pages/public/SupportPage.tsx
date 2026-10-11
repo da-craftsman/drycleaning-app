@@ -1,4 +1,5 @@
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Mail, MapPin, MessageSquareWarning, Phone } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,6 +7,7 @@ import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import { business, whatsappLink } from '@/lib/constants'
 import { useSeo } from '@/hooks/useSeo'
 import { faqJsonLd, staticSeo } from '@/lib/seo'
+import { paths } from '@/routes/paths'
 
 const faqs = [
   {
@@ -45,6 +47,27 @@ export default function SupportPage() {
         Questions about home pick up and delivery, turnaround times or payment? Here are quick answers from the
         {' '}{business.name} team in Enugu, or reach us directly.
       </p>
+
+      {/* Complaints go through the ticket system so the team sees the full order alongside the report. */}
+      <Card className="mx-auto mt-stack-lg max-w-3xl border-none bg-laundry-blue-deep">
+        <CardContent className="flex flex-col items-start gap-stack-sm pt-stack-md sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary-container">
+              <MessageSquareWarning className="h-5 w-5 text-on-secondary-container" />
+            </div>
+            <div>
+              <p className="text-body-lg font-bold text-clean-white">Got a complaint about your wash?</p>
+              <p className="text-body-md text-clean-white/80">
+                Log in and report it. Attach the order and photos, and our team will review it and get back to you,
+                usually within a day.
+              </p>
+            </div>
+          </div>
+          <Button variant="express" asChild className="shrink-0">
+            <Link to={paths.accountTickets}>Report an Issue</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="mt-stack-lg grid grid-cols-1 gap-stack-lg md:grid-cols-[2fr_1fr]">
         <div>
