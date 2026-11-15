@@ -40,3 +40,6 @@ products videos/
 
 # Internal setup guide and per-client worksheet (kept local, not versioned)
 system setup guide/
+
+# Claude Code MCP config (local only)
+.mcp.json
