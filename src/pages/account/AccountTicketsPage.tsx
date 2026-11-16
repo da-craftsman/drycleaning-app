@@ -59,7 +59,7 @@ export default function AccountTicketsPage() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>New Support Ticket</DialogTitle>
             <DialogDescription>Tell us what happened and we'll get back to you.</DialogDescription>
